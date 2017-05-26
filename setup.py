@@ -31,6 +31,6 @@ setup(
 
     packages=find_packages(),
 
-    install_requires = ['numpy'],
+    # install_requires = [ "nltk", "twisted" ],
     )
 

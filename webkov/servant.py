@@ -13,7 +13,7 @@ def rj():
 
 # Targets are lines like these, with brackets in the front
 # [Aside] Villain and he be many miles asunder.--
-IS_TARGET_REG = re.compile(r"^\[.*]\s*(.*)$")
+IS_TARGET_REG = re.compile(r"^\[.*]\s*(.*$)")
 
 
 def is_target(line):
@@ -26,6 +26,9 @@ def is_target(line):
 # this happens twice. I could just ignore the two lines, but that's a
 # little brittle, isn't it?
 IS_NOISE_REG = re.compile("^[Nn]oise")
+
+def is_noisy(line):
+    return IS_NOISE_REG.match(line)
 
 TITLES = set([
     "LADY",
@@ -99,6 +102,28 @@ def is_whitespace(line):
     return is_whitespace_reg.match(line)
 
 
+def rj_stream():
+    '''
+    Top level function for intermediary deque structure containing map
+    between names and contiguous soliliquoys.
+    '''
+    pass
+
+
+def sanitized_pull():
+    with rj() as rjf:
+        line = rjf.readline()
+        while line:
+            # keep reading lines until we get visible text.
+            # if we encounter any junk, remove it here.
+            targeted = is_target(line)
+            if targeted:
+                yield targeted.groups()[0]
+            elif not (is_whitespace(line) or is_noisy(line)):
+                yield line
+            line = rjf.readline()
+
+
 # ==================== DEMO STUFF ====================
 
 
@@ -143,7 +168,6 @@ def _pull():
             if not is_whitespace(line):
                 yield line
             line = rjf.readline()
-
 
 
 def _prompt():

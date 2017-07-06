@@ -1,4 +1,4 @@
-from webkov.servant import is_voice, is_action, is_heading
+from webkov.servant import is_voice, is_action, is_heading, is_target
 
 
 def test_is_voice():
@@ -60,6 +60,14 @@ def test_is_heading():
 
 
 def test_is_target():
+    # we want to recognize them, and we want to pull out the
+    # relevant text
     targets = [
-        "[Aside to GREGORY] Is the law of our side, if I say",
-        
+        # the line
+        ("[Aside to GREGORY] Is the law of our side, if I say",
+         # the relevant text
+         "Is the law of our side, if I say"),
+    ]
+    for target in targets:
+        match = is_target(target[0])
+        return match and match.groups(0) == target[1]

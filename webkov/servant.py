@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 import re
-from nltk import word_tokenize
 import time
+from collections import deque
 
 
 @contextmanager
@@ -14,6 +14,16 @@ def rj():
 # Targets are lines like these, with brackets in the front
 # [Aside] Villain and he be many miles asunder.--
 IS_TARGET_REG = re.compile(r"^\s*\[.*]\s*(.*$)")
+
+# we don't consider "'" punctuation
+TRAILING_PUNCT = "".join([
+    ";",
+    "'",
+    ".",
+    '"',
+    ",",
+    ":",
+])
 
 
 def is_target(line):
@@ -28,8 +38,8 @@ def is_target(line):
 IS_NOISE_REG = re.compile("^[Nn]oise")
 
 
-def is_noisy(line):
-    return IS_NOISE_REG.match(line)
+def is_noisy(tokens):
+    return IS_NOISE_REG.match(tokens[0])
 
 
 TITLES = set([
@@ -43,15 +53,15 @@ TITLES = set([
 is_voice_reg = re.compile(r"\A[a-zA-Z]+\s*$")
 
 
-def is_voice(line):
-    words = word_tokenize(line)
-    num_words = len(words)
+def is_voice(tokens):
+
+    num_words = len(tokens)
     if num_words == 1:
-        word = words[0]
+        word = tokens[0]
         return word not in HEADINGS and is_voice_reg.match(word)
     elif num_words == 2:
         # maybe:
-        title, name = words
+        title, name = tokens
         if title in TITLES:
             return is_voice_reg.match(name)
 
@@ -65,9 +75,8 @@ HEADINGS = set([
 ])
 
 
-def is_heading(line):
-    first_word = word_tokenize(line)[0]
-    return first_word in HEADINGS
+def is_heading(tokens):
+    return tokens[0] in HEADINGS
 
 
 ACTIONS = set([
@@ -87,32 +96,34 @@ ACTIONS = set([
 ])
 
 
-def is_action(line):
-    words = word_tokenize(line)
+def is_action(tokens):
     # since there's a ton of these, we're going to just take the first
     # word, downcase it, and see if it's in ACTIONS.
-    if words[0].lower() in ACTIONS:
+    if tokens[0].lower() in ACTIONS:
         return True
-    elif len(words) >= 2:
-        return words[:2] == ["They", "fight"]
-    # return words[0].lower() in ACTIONS or words[:2] == ["They", "fight"]
-
-
-is_whitespace_reg = re.compile(r"^\s*$")
-
-
-def is_whitespace(line):
-    return is_whitespace_reg.match(line)
+    return len(tokens) >= 2 and tokens[:2] == ["They", "fight"]
 
 
 def rj_stream():
     '''
     Top level function for intermediary deque structure containing map
-    between names and contiguous soliliquoys (and... witty one liners)
+    between names and contiguous soliliquys (and... witty one liners)
     '''
     out = deque()
-    
+    pass
 
+
+def soliliquy_pull():
+    '''Generator that pulls in names and the dialog after them,
+    yielding tuples mapping names to dialog. The only non-dialog
+    portion is the prologue of the first act, so we tag it here to be
+    imported as common.'''
+    out = ['COMMON', []]
+    stream = sanitized_pull()
+    
+    for line in stream:
+        if is_voice(line):
+            pass
 
 
 def sanitized_pull():
@@ -124,14 +135,22 @@ def sanitized_pull():
             targeted = is_target(line)
             if targeted:
                 yield targeted.groups()[0]
-
             # if I were to redo this class based, I would wrap lines
             # in some class that had this metadata constructed at init
-            elif not (is_whitespace(line) or
-                      is_noisy(line) or
-                      is_action(line)):
-                yield line
-            line = rjf.readline()
+            else:
+                # we're not interested in punctuation right now.
+                # rstrip it.
+                tokens = [tok.rstrip(TRAILING_PUNCT)
+                          for tok in line.split()]
+                if tokens and not (
+                        is_noisy(tokens) or
+                        is_action(tokens) or
+                        is_heading(tokens)):
+                    yield line
+
+            # no matter what, read the next line, even if you haven't
+            # yielded.
+            line = rjf.readline.strip()
 
 
 # ==================== DEMO STUFF ====================
@@ -175,7 +194,7 @@ def _pull():
         # while line isn't the empty string
         while line:
             # keep reading lines until we get visible text
-            if not is_whitespace(line):
+            if not line:
                 yield line
             line = rjf.readline()
 

@@ -70,4 +70,4 @@ def test_is_target():
     ]
     for target in targets:
         match = is_target(target[0])
-        return match and match.groups(0) == target[1]
+        return match and match.groups()[0] == target[1]

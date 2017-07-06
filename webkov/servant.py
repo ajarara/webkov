@@ -13,7 +13,7 @@ def rj():
 
 # Targets are lines like these, with brackets in the front
 # [Aside] Villain and he be many miles asunder.--
-IS_TARGET_REG = re.compile(r"^\[.*]\s*(.*$)")
+IS_TARGET_REG = re.compile(r"^\s*\[.*]\s*(.*$)")
 
 
 def is_target(line):
@@ -105,9 +105,9 @@ def is_whitespace(line):
 def rj_stream():
     '''
     Top level function for intermediary deque structure containing map
-    between names and contiguous soliliquoys.
+    between names and contiguous soliliquoys (and... witty one liners)
     '''
-    pass
+    out = deque()
 
 
 def sanitized_pull():

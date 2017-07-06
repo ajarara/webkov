@@ -27,8 +27,10 @@ def is_target(line):
 # little brittle, isn't it?
 IS_NOISE_REG = re.compile("^[Nn]oise")
 
+
 def is_noisy(line):
     return IS_NOISE_REG.match(line)
+
 
 TITLES = set([
     "LADY",
@@ -70,6 +72,7 @@ def is_heading(line):
 
 ACTIONS = set([
     "enter",
+    "beats",
     "re-enter",
     "retiring",
     "retires",
@@ -108,6 +111,8 @@ def rj_stream():
     between names and contiguous soliliquoys (and... witty one liners)
     '''
     out = deque()
+    
+
 
 
 def sanitized_pull():
@@ -119,7 +124,12 @@ def sanitized_pull():
             targeted = is_target(line)
             if targeted:
                 yield targeted.groups()[0]
-            elif not (is_whitespace(line) or is_noisy(line)):
+
+            # if I were to redo this class based, I would wrap lines
+            # in some class that had this metadata constructed at init
+            elif not (is_whitespace(line) or
+                      is_noisy(line) or
+                      is_action(line)):
                 yield line
             line = rjf.readline()
 

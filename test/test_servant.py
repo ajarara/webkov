@@ -67,6 +67,10 @@ def test_is_target():
         ("[Aside to GREGORY] Is the law of our side, if I say",
          # the relevant text
          "Is the law of our side, if I say"),
+        # the line
+        ("    [Aside to GREGORY] Is the law of our side, if I say",
+         # the relevant text
+         "Is the law of our side, if I say"),
     ]
     for target in targets:
         match = is_target(target[0])

@@ -11,30 +11,16 @@ def rj():
     out.close()
 
 
-# if it's just the name, it's considered a designation that the
-# character is speaking
-
-# certain lines start with targets. They are surrounded by brackets,
-# targets should be kept, but stripped of the match:
+# Targets are lines like these, with brackets in the front
 # [Aside] Villain and he be many miles asunder.--
-TARGETS = [
-    "aside",
-    "within",
-]
-
-# capture the end, we don't care about the action.
-TARGETS_RE_MAP = [
-    re.compile(r"^\[{}.*]\s*(.*)$".format(target)) for target in TARGETS]
+IS_TARGET_REG = re.compile(r"^\[.*]\s*(.*)$")
 
 
 def is_target(line):
     # go down the list of targets until you find one.
     # a simpler implementation might be to ignore all targets, and
     # only match brackets.
-    for reg in TARGETS_RE_MAP:
-        maybe = reg.match(line)
-        if maybe:
-            return maybe
+    return IS_TARGET_REG.match(line)
 
 
 # this happens twice. I could just ignore the two lines, but that's a

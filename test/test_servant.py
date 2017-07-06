@@ -37,7 +37,7 @@ def test_is_action():
         "Laying, he calls out",
     ]
     for act in actions:
-        assert is_action(act + "\n") 
+        assert is_action(act + "\n")
 
 
 def test_is_not_action():

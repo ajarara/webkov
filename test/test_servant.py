@@ -1,4 +1,6 @@
-from webkov.servant import is_voice, is_action, is_heading, TRAILING_PUNCT, is_target
+from webkov.servant import is_voice, is_action, is_heading
+from webkov.servant import TRAILING_PUNCT, is_target, tokenize
+from webkov.servant import maybe_split_token
 
 
 def _test_splitter(cases):
@@ -85,4 +87,29 @@ def test_is_target():
     ]
     for target in targets:
         match = is_target(target[0])
-        return match and match.groups()[0] == target[1]
+        assert match and match.groups()[0] == target[1]
+
+
+def test_maybe_split_token():
+    tokens = [
+        ["neighbour-stained", "neighbour-stained"],
+        ['steel,--', ["steel", ",",  "-", "-"]],
+        ['tyrant:', ["tyrant", ":"]],
+    ]
+    for token, split in tokens:
+        assert maybe_split_token(token) == split
+
+def test_tokenize():
+    # lines mapped to their tokenizations
+    lines = [
+        ["To move is to stir; and to be valiant is to stand:",
+         ["To", "move", "is", "to", "stir", ";", "and", "to", "be",
+          "valiant", "is", "to", "stand", ":"]]
+        ["'Tis all one, I will show myself a tyrant: when I",
+         ["'Tis", "all", "one", ",", "I", "will", "show", "myself",
+          "a", "tyrant", ":", "when", "I"]]
+        ["Profaners of this neighbour-stained steel,--",
+         ["Profaners", "of", "this", "neighbour-stained",
+          "steel", ",", "--", ]]]
+    for line, tokenization in lines:
+        assert tokenize(line) == tokenization

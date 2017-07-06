@@ -2,6 +2,7 @@ from contextlib import contextmanager
 import re
 import time
 from collections import deque
+from string import ascii_letters
 
 
 @contextmanager
@@ -15,15 +16,21 @@ def rj():
 # [Aside] Villain and he be many miles asunder.--
 IS_TARGET_REG = re.compile(r"^\s*\[.*]\s*(.*$)")
 
-# we don't consider "'" punctuation
-TRAILING_PUNCT = "".join([
+TRAILING_PUNCT_LIST = [
     ";",
     "'",
     ".",
     '"',
     ",",
     ":",
-])
+    "-",
+]
+
+TRAILING_PUNCT = "".join(TRAILING_PUNCT_LIST)
+
+# we don't consider "'" punctuation
+TRAILING_PUNCT_SET = set(TRAILING_PUNCT_LIST)
+
 
 
 def is_target(line):
@@ -54,7 +61,6 @@ is_voice_reg = re.compile(r"\A[a-zA-Z]+\s*$")
 
 
 def is_voice(tokens):
-
     num_words = len(tokens)
     if num_words == 1:
         word = tokens[0]
@@ -120,10 +126,16 @@ def soliliquy_pull():
     imported as common.'''
     out = ['COMMON', []]
     stream = sanitized_pull()
-    
+
     for line in stream:
         if is_voice(line):
-            pass
+            yield out
+            # reinitialize with name
+            out = [line, []]
+        # okay, it's text. Good idea to tokenize here and extend
+        # the list.
+        else:
+            out[1].extend(tokenize[line])
 
 
 def sanitized_pull():
@@ -151,6 +163,35 @@ def sanitized_pull():
             # no matter what, read the next line, even if you haven't
             # yielded.
             line = rjf.readline.strip()
+
+
+def tokenize(line):
+    whitesep = line.split()
+    out = []
+    for token in whitesep:
+        # expecting a singleton out of maybe_split_token
+        # otherwise we'll get garbage characters
+        out.extend(maybe_split_token(token))
+    return out
+
+
+def maybe_split_token(token):
+    '''Always return a list . Returning a string is gonna be messy'''
+    # we're only interested in trailing punctuation. Everything else
+    # we'll consider a word.
+    # oh, and an apostrophe is not punctuation.
+    out = []
+    chars = reversed(token)
+    for char in chars:
+        if char in TRAILING_PUNCT_SET:
+            out.append(char)
+        else:
+            break
+    # once you hit your first non punct, the rest is just a word.
+    # tomorrow (or tonight)
+    # figure out how to special case no punctuation.
+    out.append(token[:-len(out)])
+    return list(reversed(out))
 
 
 # ==================== DEMO STUFF ====================

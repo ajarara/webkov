@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import re
 from nltk import word_tokenize
+import time
 
 
 @contextmanager
@@ -8,33 +9,6 @@ def rj():
     out = open("./rj.txt", 'r', encoding='utf-8')
     yield out
     out.close()
-
-
-# any line starting with these indicates non-dialog. Ignore this line
-# and any lines after it, until a character speaks.
-HEADINGS = set([
-    "PROLOGUE",
-    "SCENE",
-    "ACT",
-])
-
-# I wonder what's faster: introducing downcased
-# any line starting with these is ignored.
-ACTIONS = set([
-    "Enter",
-    "Re-enter",
-    "Retiring",
-    "Retires",
-    "Dies",  # :(
-    "Laying",
-    "Advances",
-    "Falls",
-    "Singing",  # mercutio does this once. Only occurence
-    "Exeunt",
-    "Exit",
-    "Drawing",  # twice, both actions.
-    "They fight",
-])
 
 
 # if it's just the name, it's considered a designation that the
@@ -76,3 +50,113 @@ def is_voice(line):
         title, name = words
         if title in TITLES:
             return is_voice_reg.match(name)
+
+
+# any line starting with these indicates non-dialog. Ignore this line
+# and any lines after it, until a character speaks.
+HEADINGS = set([
+    "PROLOGUE",
+    "SCENE",
+    "ACT",
+])
+
+
+def is_heading(line):
+    first_word = word_tokenize(line)[0]
+    return first_word in HEADINGS
+
+
+ACTIONS = set([
+    "enter",
+    "re-enter",
+    "retiring",
+    "retires",
+    "dies",  # :(
+    "laying",
+    "advances",
+    "falls",
+    "singing",  # mercutio does this once. Only occurence
+    "exeunt",
+    "exit",
+    "drawing",  # twice, both actions.
+])
+
+
+def is_action(line):
+    words = word_tokenize(line)
+    # since there's a ton of these, we're going to just take the first
+    # word, downcase it, and see if it's in ACTIONS.
+    if words[0].lower() in ACTIONS:
+        return True
+    elif len(words) >= 2:
+        return words[:2] == ["They", "fight"]
+    # return words[0].lower() in ACTIONS or words[:2] == ["They", "fight"]
+
+
+is_whitespace_reg = re.compile(r"^\s*$")
+
+
+def is_whitespace(line):
+    return is_whitespace_reg.match(line)
+
+
+def loop(skip=0):
+    # is there a 'start the loop' construct in python?
+    lines = _pull()
+    for hop in range(skip):
+        next(lines)
+    count = skip
+    for line in lines:
+        out = _prompt()
+        count += 1
+        if out == 'q':
+            break
+        else:
+            print(_result(_annotate(line), count, line))
+
+
+def lazy_loop(skip=0):
+    # unimport sleep when this is over
+    lines = _pull()
+    for hop in range(skip):
+        next(lines)
+    count = skip
+    for line in lines:
+        print(_result(_annotate(line), count, line))
+        count += 1
+        time.sleep(0.8)
+
+
+def _result(annotate, count, line):
+    return "{}: {} {}".format(annotate, count, line)
+
+
+def _pull():
+    with rj() as rjf:
+        # initialize the loop
+        line = rjf.readline()
+        # while line isn't the empty string
+        while line:
+            # keep reading lines until we get visible text
+            if not is_whitespace(line):
+                yield line
+            line = rjf.readline()
+
+
+
+def _prompt():
+    while True:
+        out = input("Continue or quit? (c/q): ")
+        if out in ['c', 'q']:
+            return out
+
+
+def _annotate(line):
+    if is_heading(line):
+        return "L"
+    if is_action(line):
+        return "A"
+    if is_voice(line):
+        return "V"
+    else:
+        return "T"

@@ -27,6 +27,7 @@ def test_is_not_voice():
     for garbage in trash:
         assert not is_voice(garbage + "\n")
 
+
 def test_is_action():
     actions = [
         "Enter ROMEO",
@@ -56,3 +57,9 @@ def test_is_heading():
     ]
     for title in titles:
         assert is_heading(title + "\n")
+
+
+def test_is_target():
+    targets = [
+        "[Aside to GREGORY] Is the law of our side, if I say",
+        

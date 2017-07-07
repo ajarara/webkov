@@ -1,14 +1,13 @@
-from webkov.servant import is_voice, is_action, is_heading
-from webkov.servant import TRAILING_PUNCT, is_target, tokenize
-from webkov.servant import maybe_split_token
+import webkov.servant as wks
+from collections import deque, defaultdict
 
 
-def _test_splitter(cases):
+def _splitter(cases):
     raw = [line.split()
            for line in cases]
     out = []
     for tokenized in raw:
-        out.append([tok.rstrip(TRAILING_PUNCT) for tok in tokenized])
+        out.append([tok.rstrip(wks.TRAILING_PUNCT) for tok in tokenized])
     return out
 
 
@@ -21,8 +20,8 @@ def test_is_voice():
         "First Citizen",
         "Servant",
     ]
-    for voice in _test_splitter(voices):
-        assert is_voice(voice)
+    for voice in _splitter(voices):
+        assert wks.is_voice(voice)
 
 
 def test_is_not_voice():
@@ -34,8 +33,8 @@ def test_is_not_voice():
         "PROLOGUE",
         "",
     ]
-    for garbage in _test_splitter(trash):
-        assert not is_voice(garbage)
+    for garbage in _splitter(trash):
+        assert not wks.is_voice(garbage)
 
 
 def test_is_action():
@@ -49,8 +48,8 @@ def test_is_action():
     # the alternative to this double nested list comprehension
     # is a massive amount of pain each time I want to add some new
     # test case
-    for act in _test_splitter(actions):
-        assert is_action(act)
+    for act in _splitter(actions):
+        assert wks.is_action(act)
 
 
 def test_is_not_action():
@@ -59,8 +58,8 @@ def test_is_not_action():
         "Sweet flower, with flowers thy bridal bed I strew,--",
         "Yeah, no thanks",
     ]
-    for inact in _test_splitter(inactions):
-        assert not is_action(inact)
+    for inact in _splitter(inactions):
+        assert not wks.is_action(inact)
 
 
 def test_is_heading():
@@ -68,8 +67,12 @@ def test_is_heading():
         "SCENE I. Verona. A public place.",
         "PROLOGUE",
     ]
-    for title in _test_splitter(titles):
-        assert is_heading(title)
+    for title in _splitter(titles):
+        assert wks.is_heading(title)
+
+
+def test_is_not_heading():
+    pass
 
 
 def test_is_target():
@@ -86,7 +89,7 @@ def test_is_target():
          "Is the law of our side, if I say"),
     ]
     for target in targets:
-        match = is_target(target[0])
+        match = wks.is_target(target[0])
         assert match and match.groups()[0] == target[1]
 
 
@@ -100,7 +103,7 @@ def test_maybe_split_token():
         ['comes?', ['comes', '?']],
     ]
     for token, split in tokens:
-        assert maybe_split_token(token) == split
+        assert wks.maybe_split_token(token) == split
 
 
 def test_tokenize():
@@ -116,5 +119,56 @@ def test_tokenize():
          ["Profaners", "of", "this", "neighbour-stained",
           "steel", ",", "-", "-"]]]
     for line, tokenization in lines:
-        assert tokenize(line) == tokenization
+        assert wks.tokenize(line) == tokenization
 
+
+
+def test_sanity_check():
+    '''
+    This is surprising behavior that may or may not change.
+    Thankfully it's documented as of 3.5.3
+    '''
+    a = defaultdict(int)
+    a["words!"] += 1
+    b = {"words!": 1}
+    assert a == b
+
+
+def _dd_dd_int():
+    "Why do defaultdicts make me feel so gross?"
+    return defaultdict(wks._python_lambdas_make_me_sad)
+
+
+def _chain_map_gen(string, chain_map, order=1):
+    mapper = {
+        1: wks.first_order_chain_map,
+        2: wks.second_order_chain_map,
+        }[order]
+    hard_coded = _dd_dd_int()
+    hard_coded.update(chain_map)
+    return [mapper(deque(wks.tokenize(string))),
+            hard_coded]
+
+
+def test_first_order_chain_map():
+    maps = [
+        # I assure you this is less verbose than before.
+        _chain_map_gen("you and you need to.",
+                       {
+                           "you": {
+                               "and": 1,
+                               "need": 1,
+                           },
+                           "and": {
+                               "you": 1,
+                           },
+                           "need": {
+                               "to": 1,
+                           },
+                           "to": {
+                               ".": 1,
+                           },
+                       })
+        ]
+    for chain_map, hard_coded in maps:
+        assert chain_map == hard_coded

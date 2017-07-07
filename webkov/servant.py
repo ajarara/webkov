@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 import re
-from collections import deque, defaultdict, Counter
+from collections import deque, defaultdict
 
 
 @contextmanager
@@ -30,7 +30,6 @@ TRAILING_PUNCT = "".join(TRAILING_PUNCT_LIST)
 
 # we don't consider "'" punctuation
 TRAILING_PUNCT_SET = set(TRAILING_PUNCT_LIST)
-
 
 
 def is_target(line):

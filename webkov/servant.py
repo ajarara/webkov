@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 import re
 from collections import deque, defaultdict, Counter
-from random import random
+from random import choice
 
 
 @contextmanager
@@ -17,7 +17,7 @@ IS_TARGET_REG = re.compile(r"^\s*\[.*]\s*(.*$)")
 
 TRAILING_PUNCT_LIST = [
     ";",
-    "'",
+    #     "'",  # hmm.. should apostrophes be here?
     ".",
     '"',
     ",",
@@ -115,15 +115,45 @@ def is_action(tokens):
     return len(tokens) >= 2 and tokens[:2] == ["They", "fight"]
 
 
-def _temp(start = ".", num_tokens = 30):
+def padded(tokens):
+    '''
+    for each token, prepend a space to them provided they aren't punctuation
+    Special case the first token.
+    '''
+    out = [tokens[0]]
+    for token in tokens[1:]:
+        if token not in TRAILING_PUNCT_SET:
+            out.append(" ")
+        out.append(token)
+    return out
+
+
+def _temp(start=".", num_tokens=30, name="COMMON"):
     '''
     May reach dead ends. until I get SCCs that's the best I got
+    Not deterministic
     '''
-    pass
+    words = name_dialog_deques()[name]
+    chains = first_order_chain_map(words)
+
+    if start not in chains:
+        raise KeyError("{} is not in the dialog of {}".format(
+            repr(start),
+            name))
+
+    out = []
+    if start != ".":
+        out.append(start)
+    
+    for _ in range(num_tokens):
+        after = choice(list(
+            chains[start].elements()))
+        out.append(after)
+        start = after
+    return padded(out)
 
 
-
-
+# could generalize this wrt order
 def first_order_chain_map(deq):
     # don't want to destroy the original
     deq = deq.copy()
@@ -154,20 +184,23 @@ def second_order_chain_map(deq):
     return out
 
 
-def name_dialog_deques():
+def name_dialog_deques(_cache=[]):
     ''' A map from names to a stream of dialog. COMMON is a special
     case, a complete stream of every word said by everyone in Romeo
     and Juliet '''
-    out = defaultdict(deque)
-    stream = soliloquy_pull()
-    # special case the first stream of text
-    out['COMMON'].extend(next(stream)[1])
+    # the caching mechanism is awkward.
+    if not _cache:
+        out = defaultdict(deque)
+        stream = soliloquy_pull()
+        # special case the first stream of text
+        out['COMMON'].extend(next(stream)[1])
 
-    for name, words in stream:
-        out['COMMON'].extend(words)
-        out[name].extend(words)
-    return out
-
+        for name, words in stream:
+            out['COMMON'].extend(words)
+            out[name].extend(words)
+        _cache.append(out)
+        return out
+    return _cache[0]
 
 def soliloquy_pull():
     '''Generator that pulls in names and the dialog after them,
@@ -206,6 +239,7 @@ def sanitized_pull():
                 # rstrip it.
                 tokens = [tok.rstrip(TRAILING_PUNCT)
                           for tok in line.split()]
+                
                 if tokens and not (
                         is_noisy(tokens) or
                         is_action(tokens) or

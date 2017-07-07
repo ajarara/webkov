@@ -172,3 +172,23 @@ def test_first_order_chain_map():
         ]
     for chain_map, hard_coded in maps:
         assert chain_map == hard_coded
+
+
+def test_second_order_chain_map():
+    maps = [
+        _chain_map_gen(
+            "this morning it would be great if this morning be great.",
+            {
+                ("this", "morning"): {
+                    "it": 1,
+                    "be": 1,
+                },
+                ("be", "great"): {
+                    "if": 1,
+                    ".": 1,
+                }
+            },
+            order=2)
+        ]
+    for chain_map, hard_coded in maps:
+        assert hard_coded

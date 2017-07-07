@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import re
-from collections import deque, defaultdict
+from collections import deque, defaultdict, Counter
+from random import random
 
 
 @contextmanager
@@ -114,15 +115,20 @@ def is_action(tokens):
     return len(tokens) >= 2 and tokens[:2] == ["They", "fight"]
 
 
-def _python_lambdas_make_me_sad():
-    return defaultdict(int)
+def _temp(start = ".", num_tokens = 30):
+    '''
+    May reach dead ends. until I get SCCs that's the best I got
+    '''
+    pass
+
+
 
 
 def first_order_chain_map(deq):
     # don't want to destroy the original
     deq = deq.copy()
 
-    out = defaultdict(_python_lambdas_make_me_sad)
+    out = defaultdict(Counter)
     prev = deq.popleft()
     # consume the deq!
     while deq:
@@ -136,7 +142,7 @@ def second_order_chain_map(deq):
     deq = deq.copy()
 
     # hm now I feel bad for railing on python
-    out = defaultdict(_python_lambdas_make_me_sad)
+    out = defaultdict(Counter)
     # assert len(deq) > 2
     first = deq.popleft()
     second = deq.popleft()
@@ -183,6 +189,7 @@ def soliloquy_pull():
             out[1].extend(toks)
 
 
+# factor out the sanitize step?
 def sanitized_pull():
     with rj() as rjf:
         line = rjf.readline()
@@ -204,7 +211,6 @@ def sanitized_pull():
                         is_action(tokens) or
                         is_heading(tokens)):
                     yield line
-
             # read the next line
             line = rjf.readline()
 

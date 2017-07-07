@@ -1,5 +1,5 @@
 import webkov.servant as wks
-from collections import deque, defaultdict
+from collections import deque, defaultdict, Counter
 
 
 def _splitter(cases):
@@ -136,7 +136,7 @@ def test_sanity_check():
 
 def _dd_dd_int():
     "Why do defaultdicts make me feel so gross?"
-    return defaultdict(wks._python_lambdas_make_me_sad)
+    return defaultdict(Counter)
 
 
 def _chain_map_gen(string, chain_map, order=1):

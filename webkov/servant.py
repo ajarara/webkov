@@ -109,16 +109,16 @@ def is_action(tokens):
     return len(tokens) >= 2 and tokens[:2] == ["They", "fight"]
 
 
-def rj_stream():
+def rj_counter():
     '''
     Top level function for intermediary deque structure containing map
-    between names and contiguous soliliquys (and... witty one liners)
+    between names and contiguous soliloquys (and... witty one liners)
     '''
     out = deque()
     pass
 
 
-def soliliquy_pull():
+def soliloquy_pull():
     '''Generator that pulls in names and the dialog after them,
     yielding tuples mapping names to dialog. The only non-dialog
     portion is the prologue of the first act, so we tag it here to be
@@ -127,14 +127,15 @@ def soliliquy_pull():
     stream = sanitized_pull()
 
     for line in stream:
-        if is_voice(line):
+        toks = tokenize(line)
+        if is_voice(toks):
             yield out
             # reinitialize with name
             out = [line, []]
         # okay, it's text. Good idea to tokenize here and extend
         # the list.
         else:
-            out[1].extend(tokenize[line])
+            out[1].extend(toks)
 
 
 def sanitized_pull():
@@ -159,9 +160,8 @@ def sanitized_pull():
                         is_heading(tokens)):
                     yield line
 
-            # no matter what, read the next line, even if you haven't
-            # yielded.
-            line = rjf.readline.strip()
+            # read the next line
+            line = rjf.readline()
 
 
 def tokenize(line):
@@ -249,14 +249,3 @@ def _prompt():
         out = input("Continue or quit? (c/q): ")
         if out in ['c', 'q']:
             return out
-
-
-def _annotate(line):
-    if is_heading(line):
-        return "L"
-    if is_action(line):
-        return "A"
-    if is_voice(line):
-        return "V"
-    else:
-        return "S"

@@ -116,3 +116,20 @@ def test_tokenize():
           "steel", ",", "-", "-"]]]
     for line, tokenization in lines:
         assert tokenize(line) == tokenization
+
+
+
+def _annotate(line):
+    if is_heading(line):
+        return "L"
+    if is_action(line):
+        return "A"
+    if is_voice(line):
+        return "V"
+    else:
+        return "D"
+
+def test_sanitized_pull():
+    # the first 14 lines are dialog. 
+    [('D': 14),
+     (

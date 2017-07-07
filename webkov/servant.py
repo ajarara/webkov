@@ -133,6 +133,22 @@ def first_order_chain_map(deq):
     return out
 
 
+def second_order_chain_map(deq):
+    deq = deq.copy()
+
+    # hm now I feel bad for railing on python
+    out = defaultdict(_python_lambdas_make_me_sad)
+    # assert len(deq) > 2
+    first = deq.popleft()
+    second = deq.popleft()
+    while len(deq) > 1:
+        after = deq.popleft()
+        out[(first, second)][after] += 1
+        first = second
+        second = after
+    return out
+
+
 def name_dialog_deques():
     ''' A map from names to a stream of dialog. COMMON is a special
     case, a complete stream of every word said by everyone in Romeo

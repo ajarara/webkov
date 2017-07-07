@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 import re
-import time
-from collections import deque
+from collections import deque, defaultdict, Counter
 
 
 @contextmanager
@@ -23,6 +22,8 @@ TRAILING_PUNCT_LIST = [
     ",",
     ":",
     "-",
+    "?",
+    "!",
 ]
 
 TRAILING_PUNCT = "".join(TRAILING_PUNCT_LIST)
@@ -98,6 +99,11 @@ ACTIONS = set([
     "exeunt",
     "exit",
     "drawing",  # twice, both actions.
+    "Draws",
+    "Knocking",
+    "Sings",
+    "Drinks",
+    "Reads",
 ])
 
 
@@ -109,13 +115,37 @@ def is_action(tokens):
     return len(tokens) >= 2 and tokens[:2] == ["They", "fight"]
 
 
-def rj_counter():
-    '''
-    Top level function for intermediary deque structure containing map
-    between names and contiguous soliloquys (and... witty one liners)
-    '''
-    out = deque()
-    pass
+def _python_lambdas_make_me_sad():
+    return defaultdict(int)
+
+
+def first_order_chain_map(deq):
+    # don't want to destroy the original
+    deq = deq.copy()
+
+    out = defaultdict(_python_lambdas_make_me_sad)
+    prev = deq.popleft()
+    # consume the deq!
+    while deq:
+        after = deq.popleft()
+        out[prev][after] += 1
+        prev = after
+    return out
+
+
+def name_dialog_deques():
+    ''' A map from names to a stream of dialog. COMMON is a special
+    case, a complete stream of every word said by everyone in Romeo
+    and Juliet '''
+    out = defaultdict(deque)
+    stream = soliloquy_pull()
+    # special case the first stream of text
+    out['COMMON'].extend(next(stream)[1])
+
+    for name, words in stream:
+        out['COMMON'].extend(words)
+        out[name].extend(words)
+    return out
 
 
 def soliloquy_pull():
@@ -123,15 +153,15 @@ def soliloquy_pull():
     yielding tuples mapping names to dialog. The only non-dialog
     portion is the prologue of the first act, so we tag it here to be
     imported as common.'''
-    out = ['COMMON', []]
+    out = ['COMMON', deque()]
     stream = sanitized_pull()
 
     for line in stream:
         toks = tokenize(line)
         if is_voice(toks):
             yield out
-            # reinitialize with name
-            out = [line, []]
+            # reinitialize with new name
+            out = [" ".join(toks), deque()]
         # okay, it's text. Good idea to tokenize here and extend
         # the list.
         else:
@@ -175,7 +205,7 @@ def tokenize(line):
 
 
 def maybe_split_token(token):
-    '''Always return a list . Returning a string is gonna be messy'''
+    '''Always return a list. Returning a string is gonna be messy'''
     # we're only interested in trailing punctuation. Everything else
     # we'll consider a word.
     # oh, and an apostrophe is not punctuation.
@@ -194,58 +224,3 @@ def maybe_split_token(token):
         out.append(token[:-len(out)])
         return list(reversed(out))
     return [token]
-
-
-
-
-# ==================== DEMO STUFF ====================
-
-
-def loop(skip=0):
-    # is there a 'start the loop' construct in python?
-    lines = _pull()
-    for hop in range(skip):
-        next(lines)
-    count = skip
-    for line in lines:
-        out = _prompt()
-        count += 1
-        if out == 'q':
-            break
-        else:
-            print(_result(_annotate(line), count, line))
-
-
-def lazy_loop(skip=0):
-    # unimport sleep when this is over
-    lines = _pull()
-    for hop in range(skip):
-        next(lines)
-    count = skip
-    for line in lines:
-        print(_result(_annotate(line), count, line))
-        count += 1
-        time.sleep(0.8)
-
-
-def _result(annotate, count, line):
-    return "{}: {} {}".format(annotate, count, line)
-
-
-def _pull():
-    with rj() as rjf:
-        # initialize the loop
-        line = rjf.readline()
-        # while line isn't the empty string
-        while line:
-            # keep reading lines until we get visible text
-            if not line:
-                yield line
-            line = rjf.readline()
-
-
-def _prompt():
-    while True:
-        out = input("Continue or quit? (c/q): ")
-        if out in ['c', 'q']:
-            return out

@@ -92,24 +92,27 @@ def test_is_target():
 
 def test_maybe_split_token():
     tokens = [
-        ["neighbour-stained", "neighbour-stained"],
+        ["neighbour-stained", ["neighbour-stained"]],
         ['steel,--', ["steel", ",",  "-", "-"]],
         ['tyrant:', ["tyrant", ":"]],
+        ['them', ['them']],
+        ['Gregory,', ['Gregory', ',']],
     ]
     for token, split in tokens:
         assert maybe_split_token(token) == split
+
 
 def test_tokenize():
     # lines mapped to their tokenizations
     lines = [
         ["To move is to stir; and to be valiant is to stand:",
          ["To", "move", "is", "to", "stir", ";", "and", "to", "be",
-          "valiant", "is", "to", "stand", ":"]]
+          "valiant", "is", "to", "stand", ":"]],
         ["'Tis all one, I will show myself a tyrant: when I",
          ["'Tis", "all", "one", ",", "I", "will", "show", "myself",
-          "a", "tyrant", ":", "when", "I"]]
+          "a", "tyrant", ":", "when", "I"]],
         ["Profaners of this neighbour-stained steel,--",
          ["Profaners", "of", "this", "neighbour-stained",
-          "steel", ",", "--", ]]]
+          "steel", ",", "-", "-"]]]
     for line, tokenization in lines:
         assert tokenize(line) == tokenization

@@ -2,7 +2,6 @@ from contextlib import contextmanager
 import re
 import time
 from collections import deque
-from string import ascii_letters
 
 
 @contextmanager
@@ -187,11 +186,16 @@ def maybe_split_token(token):
             out.append(char)
         else:
             break
-    # once you hit your first non punct, the rest is just a word.
-    # tomorrow (or tonight)
-    # figure out how to special case no punctuation.
-    out.append(token[:-len(out)])
-    return list(reversed(out))
+
+    # if there's any punctuation, take the rest of the token and add
+    # it to out otherwise this token should just be returned in a
+    # singleton
+    if out:
+        out.append(token[:-len(out)])
+        return list(reversed(out))
+    return [token]
+
+
 
 
 # ==================== DEMO STUFF ====================

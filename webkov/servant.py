@@ -222,30 +222,39 @@ def soliloquy_pull():
             out[1].extend(toks)
 
 
-# factor out the sanitize step?
+# attempts to factor out the sanitize step only make it worse.
+# one primary issue is that I need to communicate state
+# about where we are in the story. If we're between headings,
+# all of them are stage directions, so we ignore the stuff
+# coming after it until someone starts speaking
 def sanitized_pull():
     with rj() as rjf:
         line = rjf.readline()
+        scene = False
         while line:
             # keep reading lines until we get visible text.
             # if we encounter any junk, remove it here.
             targeted = is_target(line)
             if targeted:
                 yield targeted.groups()[0]
-            # if I were to redo this class based, I would wrap lines
-            # in some class that had this metadata constructed at init
             else:
                 # we're not interested in punctuation right now.
                 # rstrip it.
                 tokens = [tok.rstrip(TRAILING_PUNCT)
                           for tok in line.split()]
-                
-                if tokens and not (
-                        is_noisy(tokens) or
-                        is_action(tokens) or
-                        is_heading(tokens)):
-                    yield line
-            # read the next line
+                if tokens:
+                    # if we're in a scene, check the line
+                    # for voices
+                    if is_heading(tokens):
+                        scene = True
+                    elif scene and is_voice(tokens):
+                        scene = False
+                        yield line
+                    elif not (is_noisy(tokens) or
+                              is_action(tokens)):
+                        yield line
+
+            # read the next line no matter what
             line = rjf.readline()
 
 

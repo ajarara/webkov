@@ -17,7 +17,11 @@ IS_TARGET_REG = re.compile(r"^\s*\[.*]\s*(.*$)")
 
 TRAILING_PUNCT_LIST = [
     ";",
-    #     "'",  # hmm.. should apostrophes be here?
+    # should apostrophes be included?
+    # there are some scenarios where apostrophes
+    # are actually punctuation
+    # and some when it's shortening, like o'
+    # "'"
     ".",
     '"',
     ",",
@@ -99,11 +103,11 @@ ACTIONS = set([
     "exeunt",
     "exit",
     "drawing",  # twice, both actions.
-    "Draws",
-    "Knocking",
-    "Sings",
-    "Drinks",
-    "Reads",
+    "draws",
+    "knocking",
+    "sings",
+    "drinks",
+    "reads",
 ])
 
 
@@ -115,6 +119,7 @@ def is_action(tokens):
     return len(tokens) >= 2 and tokens[:2] == ["They", "fight"]
 
 
+# bug--is not followed by space. Why?
 def padded(tokens):
     '''
     for each token, prepend a space to them provided they aren't punctuation
@@ -134,7 +139,7 @@ def _temp(start=".", num_tokens=30, name="COMMON"):
     Not deterministic
     '''
     words = name_dialog_deques()[name]
-    chains = first_order_chain_map(words)
+    chains = chain_from_deq(words)
 
     if start not in chains:
         raise KeyError("{} is not in the dialog of {}".format(
@@ -153,34 +158,42 @@ def _temp(start=".", num_tokens=30, name="COMMON"):
     return padded(out)
 
 
-# could generalize this wrt order
-def first_order_chain_map(deq):
-    # don't want to destroy the original
+def _temp2(start=("What", ","), name='COMMON', num_tokens=30):
+    words = name_dialog_deques()[name]
+    chains = chain_from_deq(words, order=2)
+
+    if start not in chains:
+        raise KeyError("{} is not in the dialog of {}".format(
+            repr(start),
+            name))
+
+    out = []
+    out.extend(start)
+    for _ in range(num_tokens):
+        after = choice(list(
+            chains[start].elements()))
+        out.append(after)
+        start = (start[1], after)
+    return padded(out)
+
+# one function > two
+def chain_from_deq(deq, order=1):
     deq = deq.copy()
 
     out = defaultdict(Counter)
-    prev = deq.popleft()
-    # consume the deq!
+    assert len(deq) > order
+    keys = []
+    # initialize keys
+    for _ in range(order):
+        keys.append(deq.popleft())
+    # consume the tokens!
     while deq:
         after = deq.popleft()
-        out[prev][after] += 1
-        prev = after
-    return out
-
-
-def second_order_chain_map(deq):
-    deq = deq.copy()
-
-    # hm now I feel bad for railing on python
-    out = defaultdict(Counter)
-    # assert len(deq) > 2
-    first = deq.popleft()
-    second = deq.popleft()
-    while len(deq) > 1:
-        after = deq.popleft()
-        out[(first, second)][after] += 1
-        first = second
-        second = after
+        out[tuple(keys)][after] += 1
+        # splice out the first key.
+        keys = keys[1:]
+        # and append what we just got
+        keys.append(after)
     return out
 
 
@@ -227,6 +240,11 @@ def soliloquy_pull():
 # about where we are in the story. If we're between headings,
 # all of them are stage directions, so we ignore the stuff
 # coming after it until someone starts speaking
+
+# It's becoming clear that I need to test this in isolation,
+# which means I need to factor sanitizing from this function.
+# The only way I can think of is through exception handling or
+# some mechanism of sentinel returns.
 def sanitized_pull():
     with rj() as rjf:
         line = rjf.readline()

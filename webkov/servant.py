@@ -133,13 +133,18 @@ def padded(tokens):
     return out
 
 
-def _temp(start=".", num_tokens=30, name="COMMON"):
-    '''
-    May reach dead ends. until I get SCCs that's the best I got
-    Not deterministic
-    '''
+# TIL you need the trailing comma to for (".") to be a tuple.
+def generate_tokens(order=1, start=(".",), num_tokens=30, name='COMMON'):
+
+    # wrap the string in a tuple so we don't have to do it for order 1 chains.
+    if isinstance(start, str):
+        start = tuple(start)
+    assert (isinstance(start, tuple) and
+            order >= 1 and
+            len(start) == order)
+
     words = name_dialog_deques()[name]
-    chains = chain_from_deq(words)
+    chains = chain_from_deq(words, order=order)
 
     if start not in chains:
         raise KeyError("{} is not in the dialog of {}".format(
@@ -147,34 +152,28 @@ def _temp(start=".", num_tokens=30, name="COMMON"):
             name))
 
     out = []
-    if start != ".":
-        out.append(start)
-    
+    # special case the start token if it starts with a "."
+    if start[0] == ".":
+        out.extend(start[1:])
+    else:
+        out.extend(start)
+
+    # to facilitate quick appends and left sided pops, we'll just
+    # use a deque here.
+    deq = deque(start)
+
     for _ in range(num_tokens):
+        # if we wanted to choose between determinism, we'd do
+        # it here.
         after = choice(list(
-            chains[start].elements()))
+            chains[tuple(deq)].elements()))
         out.append(after)
-        start = after
-    return padded(out)
 
+        deq.popleft()  # drop off the stale element
+        deq.append(after)  # use the new one
 
-def _temp2(start=("What", ","), name='COMMON', num_tokens=30):
-    words = name_dialog_deques()[name]
-    chains = chain_from_deq(words, order=2)
+    return out
 
-    if start not in chains:
-        raise KeyError("{} is not in the dialog of {}".format(
-            repr(start),
-            name))
-
-    out = []
-    out.extend(start)
-    for _ in range(num_tokens):
-        after = choice(list(
-            chains[start].elements()))
-        out.append(after)
-        start = (start[1], after)
-    return padded(out)
 
 # one function > two
 def chain_from_deq(deq, order=1):
@@ -215,6 +214,7 @@ def name_dialog_deques(_cache=[]):
         return out
     return _cache[0]
 
+
 def soliloquy_pull():
     '''Generator that pulls in names and the dialog after them,
     yielding tuples mapping names to dialog. The only non-dialog
@@ -233,6 +233,7 @@ def soliloquy_pull():
         # the list.
         else:
             out[1].extend(toks)
+
 
 
 # attempts to factor out the sanitize step only make it worse.
@@ -276,6 +277,10 @@ def sanitized_pull():
             line = rjf.readline()
 
 
+
+
+# where do I handle if a line isn't supposed to be capitalized?
+# 
 def tokenize(line):
     whitesep = line.split()
     out = []

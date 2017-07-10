@@ -18,20 +18,25 @@ def uppercase(line):
 
 
 def pretty(tokens, line_min_chars=35, shakespeare=True,
+           min_lines_before_break=(2, 4),
            sentence_endings=SENTENCE_ENDINGS,
            trailing_punct_set=TRAILING_PUNCT_SET):
     '''
+    Super messy function.
+
     Returns a string of lines obtained from concatenating tokens until
     length is above line_min_chars. There is no guarantee returned
     strings don't exceed line_min_chars by an insane amount.  If we
     run out of tokens, join whatever, even if it's under
-    line_min_chars.
+    line_min_chars. If when adding a line, we notice the length
+    of our output is greater than min_lines_before_break, append a newline.
 
     Yeah, this function doesn't do what you want. ☠
     I'm assuming ascii here.
     '''
     prettified_lines = deque()
 
+    lines_before_break = 0
     charcount = 0
     words = deque()
 
@@ -46,14 +51,26 @@ def pretty(tokens, line_min_chars=35, shakespeare=True,
             charcount += len(tok)
             words.append(tok)
         else:
+            # how could a function named pretty be so ugly?
+            maybe_break = ((lines_before_break >
+                           choice(range(*min_lines_before_break))) and
+                           (prettified_lines[-1][-1] in sentence_endings or
+                            prettified_lines[-1][-1] in trailing_punct_set))
+            if maybe_break:
+                prettified_lines.append("")
+                lines_before_break = lines_before_break - maybe_break
+            # now we add another line
+            lines_before_break += 1
             line = "".join(padded(words))
             if len(line) > 1 and shakespeare:
                 line = uppercase(line)
             prettified_lines.append(line)
+
             # reinitialize
             charcount = 0
             words = deque()
     if words:
+        # don't worry about breaking anymore, this is the last one.
         line = "".join(padded(words))
         if len(line) > 1 and shakespeare:
             line = uppercase(line)

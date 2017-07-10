@@ -79,7 +79,7 @@ def is_target(line, target_reg=TARGET_REG):
 
 
 # person hath here writ. I must to the learned.--In good time.
-GRATUITOUS_HYPHENS = re.compile(r"(.*)--\S(.*)")
+GRATUITOUS_HYPHENS = re.compile(r"(.*)--(?=\S)(.*)")
 
 
 def is_gratuitous(line, gratuitous_reg=GRATUITOUS_HYPHENS):
@@ -95,12 +95,6 @@ SENTENCE_ENDINGS = {
     "?",
     ".",
 }
-
-
-def uppercase(line):
-    ''' Takes a line and uppercases the first letter '''
-    return "{}{}".format(line[0].upper(),
-                         line[1:])
 
 
 def lowercase(line):

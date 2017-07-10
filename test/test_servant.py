@@ -45,9 +45,6 @@ def test_is_action():
         "They fight, with some extra text",
         "Laying, he calls out",
     ]
-    # the alternative to this double nested list comprehension
-    # is a massive amount of pain each time I want to add some new
-    # test case
     for act in _splitter(actions):
         assert wks.is_action(act)
 
@@ -137,6 +134,16 @@ def test_sanity_check():
 def _dd_dd_int():
     "Why do defaultdicts make me feel so gross?"
     return defaultdict(Counter)
+
+
+# STUBBED
+# bunch of restrictions here, but this is more a spec of what is best:
+#     TYBALT under ROMEO's arm stabs MERCUTIO, and flies with his followers
+#     Recognize and strip errant capitalization, it's messing with the model
+#     
+
+def test_sanitize():
+    pass
 
 
 def _chain_map_gen(string, chain_map, order=1):

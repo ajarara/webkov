@@ -1,3 +1,4 @@
+import webkov.parser as wkp
 import webkov.servant as wks
 from collections import deque, defaultdict, Counter
 
@@ -7,69 +8,8 @@ def _splitter(cases):
            for line in cases]
     out = []
     for tokenized in raw:
-        out.append([tok.rstrip(wks.TRAILING_PUNCT) for tok in tokenized])
+        out.append([tok.rstrip(wkp.TRAILING_PUNCT) for tok in tokenized])
     return out
-
-
-def test_is_voice():
-    voices = [
-        "LADY MONTAGUE",
-        "Nurse",
-        "NURSE",
-        "Lady Capulet",
-        "First Citizen",
-        "Servant",
-    ]
-    for voice in _splitter(voices):
-        assert wks.is_voice(voice)
-
-
-def test_is_not_voice():
-    trash = [
-        "literal garbage",
-        "He dies",
-        "TIBALT you jerk",
-        "ACT II",
-        "PROLOGUE",
-        "",
-    ]
-    for garbage in _splitter(trash):
-        assert not wks.is_voice(garbage)
-
-
-def test_is_action():
-    actions = [
-        "Enter ROMEO",
-        "Dies",
-        "dies",
-        "They fight, with some extra text",
-        "Laying, he calls out",
-    ]
-    for act in _splitter(actions):
-        assert wks.is_action(act)
-
-
-def test_is_not_action():
-    inactions = [
-        "Hey man!",
-        "Sweet flower, with flowers thy bridal bed I strew,--",
-        "Yeah, no thanks",
-    ]
-    for inact in _splitter(inactions):
-        assert not wks.is_action(inact)
-
-
-def test_is_heading():
-    titles = [
-        "SCENE I. Verona. A public place.",
-        "PROLOGUE",
-    ]
-    for title in _splitter(titles):
-        assert wks.is_heading(title)
-
-
-def test_is_not_heading():
-    pass
 
 
 def test_is_target():
@@ -86,7 +26,7 @@ def test_is_target():
          "Is the law of our side, if I say"),
     ]
     for target in targets:
-        match = wks.is_target(target[0])
+        match = wkp.is_target(target[0])
         assert match and match.groups()[0] == target[1]
 
 
@@ -100,7 +40,7 @@ def test_maybe_split_token():
         ['comes?', ['comes', '?']],
     ]
     for token, split in tokens:
-        assert wks.maybe_split_token(token) == split
+        assert wkp.maybe_split_token(token) == split
 
 
 def test_tokenize():
@@ -116,7 +56,7 @@ def test_tokenize():
          ["Profaners", "of", "this", "neighbour-stained",
           "steel", ",", "-", "-"]]]
     for line, tokenization in lines:
-        assert wks.tokenize(line) == tokenization
+        assert wkp.tokenize(line) == tokenization
 
 
 
@@ -136,24 +76,10 @@ def _dd_dd_int():
     return defaultdict(Counter)
 
 
-# STUBBED
-# bunch of restrictions here, but this is more a spec of what is best:
-#     TYBALT under ROMEO's arm stabs MERCUTIO, and flies with his followers
-#     Recognize and strip errant capitalization, it's messing with the model
-#     
-
-def test_sanitize():
-    pass
-
-
 def _chain_map_gen(string, chain_map, order=1):
-    mapper = {
-        1: wks.first_order_chain_map,
-        2: wks.second_order_chain_map,
-        }[order]
     hard_coded = _dd_dd_int()
     hard_coded.update(chain_map)
-    return [mapper(deque(wks.tokenize(string))),
+    return [wks.chain_from_deq(deque(wkp.tokenize(string)), order=order),
             hard_coded]
 
 
@@ -162,17 +88,17 @@ def test_first_order_chain_map():
         # I assure you this is less verbose than before.
         _chain_map_gen("you and you need to.",
                        {
-                           "you": {
+                           ("you",): {
                                "and": 1,
                                "need": 1,
                            },
-                           "and": {
+                           ("and",): {
                                "you": 1,
                            },
-                           "need": {
+                           ("need",): {
                                "to": 1,
                            },
-                           "to": {
+                           ("to",): {
                                ".": 1,
                            },
                        })

@@ -1,5 +1,6 @@
-from collections import deque, defaultdict, Counter
+from collections import deque, defaultdict, Counter, namedtuple
 from random import choice
+import termcolor
 
 from webkov.parser import name_dialog_deques, TRAILING_PUNCT_SET
 from webkov.parser import SENTENCE_ENDINGS
@@ -16,6 +17,30 @@ def uppercase(line):
     return "{}{}".format(line[0].upper(),
                          line[1:])
 
+
+# hmm.. how am I going to map this to html?
+# am I going to even care?
+ORDER_COLOR_MAP = {
+    0: 'white',
+    1: 'magenta',
+    2: 'red',
+    3: 'yellow',
+    4: 'green',
+    5: 'cyan',
+}
+
+
+# TODO, splice it into pretty
+def colored_transform(maybe_token, order_color_map=ORDER_COLOR_MAP):
+    '''
+    Take a token, and if it's just a string, return it as is.
+    If it's tagged, return the colored version of it using termcolor
+    '''
+    if isinstance(maybe_token, Colored_Token):
+        return termcolor.colored(maybe_token.token,
+                                 order_color_map[maybe_token.order])
+    else:
+        return maybe_token
 
 def pretty(tokens, line_min_chars=35, shakespeare=True,
            min_lines_before_break=(2, 4),
@@ -47,6 +72,7 @@ def pretty(tokens, line_min_chars=35, shakespeare=True,
                                    toks[0] in sentence_endings or
                                    toks[0] in trailing_punct_set)
         if continue_line_predicate:
+            # here is a good place to add colored_transform
             tok = toks.popleft()
             charcount += len(tok)
             words.append(tok)
@@ -76,7 +102,7 @@ def pretty(tokens, line_min_chars=35, shakespeare=True,
             line = uppercase(line)
         prettified_lines.append(line)
 
-    return "\n ".join(prettified_lines)
+    return "\n".join(prettified_lines)
 
 
 def padded(tokens):
@@ -84,6 +110,7 @@ def padded(tokens):
     for each token, prepend a space to them provided they aren't punctuation
     Special case the first token.
     '''
+    tokens = tokens.copy()
     out = deque([tokens.popleft()])
     while tokens:
         token = tokens.popleft()
@@ -110,7 +137,7 @@ def truncate(tokens, sentence_endings=SENTENCE_ENDINGS):
 def generate_tokens(start=(".",), num_tokens=75, name='COMMON'):
     " Return a deque. "
 
-    # eh since we're top level, we might as well start doing assertions
+    # eh since we're top levelish, we might as well start doing assertions
     assert start
     # wrap the string in a tuple so we don't have to do it for order 1 chains.
     if isinstance(start, str):
@@ -169,3 +196,61 @@ def chain_from_deq(deq, order=1):
         # and append what we just got
         keys.append(after)
     return out
+
+
+# ==================== TAGGED ====================
+def gen_models(order=5, name='COMMON', _cache={}):
+    stream = name_dialog_deques()[name]
+    for i in range(1, order + 1):
+        if i not in _cache:
+            _cache[i] = chain_from_deq(stream, order=i)
+    return _cache.copy()
+
+
+# can you use namedtuples for lightweight classes?
+Colored_Token = namedtuple("Colored_Token", ['token', 'order'])
+
+
+# okay I have NO idea what is going on in this code
+def legible(start=(".",), order=5, name='COMMON', num_tokens=75):
+    assert len(start) <= order
+
+    init = (Colored_Token(tok, 0) for tok in start)
+    out = deque(init)
+    curr = deque(start)
+    between = curr
+    models = gen_models(order=order, name=name)
+
+    while len(out) <= num_tokens:
+        curr = between  # reinitialize curr
+        while len(curr) > order:
+            curr.popleft()
+        # tackles the case where curr is greater than order
+        descending_orders = reversed(range(1, min(len(curr), order) + 1))
+        for i in descending_orders:
+            if len(curr) > i:
+                curr.popleft()
+
+            # check that the sky hasn't fallen
+            assert len(curr) == i
+            model = models[i]
+            # infinite loop somewhere...
+            tup = tuple(curr)
+            if tup in model and not _is_predetermined(tup, model):
+                # our tup has generated a legible token
+                print(curr)
+                got = choice(list(
+                    model[tup].elements()))
+                
+                out.append(Colored_Token(got, i))
+                between.append(got)
+                between.popleft()
+                # break out of the for loop
+                break
+
+    return out
+
+
+def _is_predetermined(token, model):
+    ''' This maximizes the order while introducing an element of chance '''
+    return len(model[token].keys()) <= 1

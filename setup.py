@@ -16,9 +16,9 @@ setup(
     # not available yet
     url='https://github.com/alphor/webkov',
 
-    license = 'MIT',
-    
-        classifiers=[
+    license='MIT',
+
+    classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Me',
         'Topic :: Home Automation :: Private Interface',
@@ -32,5 +32,4 @@ setup(
     packages=find_packages(),
 
     # install_requires = [ "nltk", "twisted" ],
-    )
-
+)

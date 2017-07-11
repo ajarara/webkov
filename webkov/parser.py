@@ -163,7 +163,7 @@ def sanitized(deq, sentence_endings=SENTENCE_ENDINGS):
     return sanitized
 
 
-def name_dialog_deques(_cache=[]):
+def name_dialog_deques(_cache={}):
     ''' A map from names to a stream of dialog. COMMON is a special
     case, a complete stream of every word said by everyone in Romeo
     and Juliet '''
@@ -195,9 +195,9 @@ def name_dialog_deques(_cache=[]):
 
             out[name] = words
 
-        _cache.append(out)
-        return out
-    return _cache[0]
+        _cache = out
+        return out.copy()
+    return _cache.copy()
 
 
 

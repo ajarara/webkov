@@ -7,7 +7,7 @@ buildPythonPackage rec {
   name = "${pname}-${version}";
   src = ./.;  # this indicates use in develop.
   propagatedBuildInputs = [
-    (pkgs.python3.withPackages (ps: [ ps.nltk ps.twisted ]))
+    (pkgs.python3.withPackages (ps: [ ps.nltk ps.aiohttp ]))
   ];
 }
   

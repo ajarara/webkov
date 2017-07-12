@@ -10,11 +10,10 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
     name='webkov',
 
-    version='0.0.1',
+    version='0.0.2',
     author='Ahmad Jarara',
     author_email='ajarara94@gmail.com',
-    # not available yet
-    url='https://github.com/alphor/webkov',
+    url='shakespeare.jarmac.org',
 
     license='MIT',
 
@@ -31,5 +30,11 @@ setup(
 
     packages=find_packages(),
 
-    # install_requires = [ "nltk", "twisted" ],
+    install_requires=["aiohttp"],
+
+    entry_points={
+        'console_scripts': [
+            'shakespeare=webkov.server:main',
+        ],
+    },
 )

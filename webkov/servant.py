@@ -1,6 +1,6 @@
 from collections import deque, defaultdict, Counter, namedtuple
 from random import choice
-import termcolor
+# import termcolor
 
 from webkov.parser import name_dialog_deques, TRAILING_PUNCT_SET
 from webkov.parser import SENTENCE_ENDINGS
@@ -89,16 +89,16 @@ ORDER_COLOR_MAP = {
 
 
 # TODO, splice it into pretty
-def colored_transform(maybe_token, order_color_map=ORDER_COLOR_MAP):
-    '''
-    Take a token, and if it's just a string, return it as is.
-    If it's tagged, return the colored version of it using termcolor
-    '''
-    if isinstance(maybe_token, Colored_Token):
-        return termcolor.colored(maybe_token.token,
-                                 order_color_map[maybe_token.order])
-    else:
-        return maybe_token
+# def colored_transform(maybe_token, order_color_map=ORDER_COLOR_MAP):
+#     '''
+#     Take a token, and if it's just a string, return it as is.
+#     If it's tagged, return the colored version of it using termcolor
+#     '''
+#     if isinstance(maybe_token, Colored_Token):
+#         return termcolor.colored(maybe_token.token,
+#                                  order_color_map[maybe_token.order])
+#     else:
+#         return maybe_token
 
 def pretty(tokens, line_min_chars=35, shakespeare=True,
            min_lines_before_break=(2, 4),

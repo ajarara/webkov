@@ -192,7 +192,7 @@ def truncate(tokens, sentence_endings=SENTENCE_ENDINGS):
 
 
 # TIL you need the trailing comma to for (".") to be a tuple.
-def generate_tokens(start=(".",), num_tokens=75, name='COMMON'):
+def generate_tokens(start=(".",), order=1, num_tokens=75, name='COMMON'):
     " Return a deque. "
 
     # eh since we're top levelish, we might as well start doing assertions
@@ -201,10 +201,17 @@ def generate_tokens(start=(".",), num_tokens=75, name='COMMON'):
     if isinstance(start, str):
         start = tuple(start)
     assert isinstance(start, tuple)
-    order = len(start)
 
     words = name_dialog_deques()[name]
     chains = chain_from_deq(words, order=order)
+
+    prefix = len(start)
+    if order > prefix:
+        # choose a random element starting with our start.
+        start = choice([key for key in chains.keys()
+                        if key[:prefix] == start])
+    else:
+        assert order == prefix
 
     if start not in chains:
         raise KeyError("{} is not in the dialog of {}".format(

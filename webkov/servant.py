@@ -178,6 +178,7 @@ def generate_tokens(start=(".",), num_tokens=75, name='COMMON'):
 
 
 # one function > two
+# maybe rewrite this in the context of a generator?
 def chain_from_deq(deq, order=1):
     deq = deq.copy()
 
@@ -211,46 +212,68 @@ def gen_models(order=5, name='COMMON', _cache={}):
 Colored_Token = namedtuple("Colored_Token", ['token', 'order'])
 
 
-# okay I have NO idea what is going on in this code
-def legible(start=(".",), order=5, name='COMMON', num_tokens=75):
-    assert len(start) <= order
+# I'm close.
+def generate_legible(start, models):
+    # an generator instead? this way we don't have to keep track of state.
+    # assume start is a tuple
+    order = len(start)
+    assert start in models[order]
+    max_order = len(models)
 
-    init = (Colored_Token(tok, 0) for tok in start)
-    out = deque(init)
     curr = deque(start)
-    between = curr
-    models = gen_models(order=order, name=name)
-
-    while len(out) <= num_tokens:
-        curr = between  # reinitialize curr
-        while len(curr) > order:
-            curr.popleft()
-        # tackles the case where curr is greater than order
-        descending_orders = reversed(range(1, min(len(curr), order) + 1))
-        for i in descending_orders:
-            if len(curr) > i:
-                curr.popleft()
-
-            # check that the sky hasn't fallen
-            assert len(curr) == i
-            model = models[i]
-            # infinite loop somewhere...
-            tup = tuple(curr)
-            if tup in model and not _is_predetermined(tup, model):
-                # our tup has generated a legible token
-                print(curr)
+    while True:
+        staging = curr.copy()
+        descending_orders = reversed(range(1,
+                                           min(len(staging), max_order) + 1))
+        for curr_order in descending_orders:
+            assert len(staging) <= max_order
+            tup = tuple(staging)
+            model = models[curr_order]
+            # fall back to order 1 if nothing else.
+            print("{}, curr_order={}".format(tup, curr_order))
+            if tup in model and (not _is_determined(tup, model) or
+                                 curr_order == 1):
+                # we've found a valid candidate, or we were forced into it
                 got = choice(list(
                     model[tup].elements()))
-                
-                out.append(Colored_Token(got, i))
-                between.append(got)
-                between.popleft()
-                # break out of the for loop
+
+                curr.append(got)
+                while len(curr) >= max_order:
+                    curr.popleft()
+                print(curr)
+                yield Colored_Token(got, curr_order)
                 break
+            else:
+                staging.popleft()
+        else:
+            raise ValueError
 
-    return out
 
-
-def _is_predetermined(token, model):
+def _is_determined(token, model):
     ''' This maximizes the order while introducing an element of chance '''
     return len(model[token].keys()) <= 1
+
+# [', I hope, thou wilt',
+# '; or, if thou wilt',
+# ', and then dreams he of',
+# "plague o' both your houses!",
+# 'at night shall she be fourteen',
+# ", she's dead, she's dead",
+# 'Good night, good night!',
+# 'but, as I said,',
+# 'thumb at us, sir?',
+# 'not so. O, she',
+# 'thumb, sir. Do you',
+# ', thy love, thy wit',
+# '. Here is a friar,',
+# 'Thou wilt fall backward when thou',
+# ', like an honest gentleman,',
+# "; wilt thou not, Jule?'",
+# ', come, go with me',
+# 'thou wilt quarrel with a man',
+# 'day! O day! O',
+# ', be gone, away!',
+# '; there art thou happy:']
+
+  
+  

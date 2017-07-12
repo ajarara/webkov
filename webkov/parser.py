@@ -29,6 +29,7 @@ def filtered_pull():
     all blockquotes not immediately preceded by names are discarded
     for all blockquotes, filter all italics (handled by _filter_dequeify)
     blockquotes are provided as a deque of strings (handled by ibid)
+    upcases all names.
     '''
     name_precedent = False
     iterchildren = rj_body_iter()
@@ -39,7 +40,8 @@ def filtered_pull():
         elif element.tag == 'a' and 'name' in element.attrib:
             # this is a voice. capture it, set name_precedent, yield it.
             name_precedent = True
-            yield next(element.itertext())
+            # here we uppercase it.
+            yield next(element.itertext()).upper()
         else:
             name_precedent = False
 
@@ -102,6 +104,7 @@ def lowercase(line):
                          line[1:])
 
 
+# this determines if a word after a period is not downcased. 
 CHARACTERS = [
     "Romeo",
     "Sampson",

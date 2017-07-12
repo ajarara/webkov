@@ -6,10 +6,68 @@ from webkov.parser import name_dialog_deques, TRAILING_PUNCT_SET
 from webkov.parser import SENTENCE_ENDINGS
 
 
+# first:
 # woohoo! pretty looking shakespeare!
 def prose(start=(".",), name='JULIET', num_tokens=75):
     print(pretty(
         generate_tokens(start=start, name=name, num_tokens=num_tokens)))
+
+
+# don't access this directly. Instead, use get_characters()
+CHARACTERS = {
+    'MERCUTIO',
+    'SECOND WATCHMAN',
+    'NURSE',
+    'PARIS',
+    'GREGORY',
+    'PETER',
+    'THIRD MUSICIAN',
+    'ABRAHAM',
+    'SECOND MUSICIAN',
+    'SECOND SERVANT',
+    'BENVOLIO',
+    'SECOND CAPULET',
+    'FIRST SERVANT',
+    'SAMPSON',
+    'BALTHASAR',
+    'SERVANT',
+    'FIRST CITIZEN',
+    'LADY  CAPULET',
+    'ROMEO',
+    'FIRST MUSICIAN',
+    'MONTAGUE',
+    'FIRST WATCHMAN',
+    'COMMON',
+    'LADY MONTAGUE',
+    'PRINCE',
+    'CHORUS',
+    'THIRD WATCHMAN',
+    'CAPULET',
+    'FRIAR JOHN',
+    'MUSICIAN',
+    'PAGE',
+    'FRIAR LAURENCE',
+    'TYBALT',
+    'NURSE',
+    'APOTHECARY',
+    'LADY CAPULET',
+    'JULIET'
+}
+
+
+def get_characters(required_start=(".",),
+                   _characters=CHARACTERS,
+                   _cache={}):
+    if required_start in _cache:
+        return _cache[required_start]
+    if type(required_start) == str:
+        required_start = (required_start,)
+    order = len(required_start)
+
+    out = frozenset(name for name in _characters
+                    if required_start in gen_models(name=name)[order])
+    _cache[required_start] = out
+    return out
 
 
 def uppercase(line):
@@ -199,27 +257,41 @@ def chain_from_deq(deq, order=1):
     return out
 
 
-# ==================== TAGGED ====================
 def gen_models(order=5, name='COMMON', _cache={}):
-    stream = name_dialog_deques()[name]
-    for i in range(1, order + 1):
-        if i not in _cache:
-            _cache[i] = chain_from_deq(stream, order=i)
-    return _cache.copy()
+    out = {}
+    if (order, name) in _cache:
+        for i in range(1, order + 1):
+            out[i] = _cache[i, name].copy()
+        return out
+    else:
+        stream = name_dialog_deques()[name]
+        for i in range(1, order + 1):
+            if (i, name) not in _cache:
+                _cache[(i, name)] = chain_from_deq(stream, order=i)
+            out[i] = _cache[i, name].copy()
+        return out
 
 
 # can you use namedtuples for lightweight classes?
 Colored_Token = namedtuple("Colored_Token", ['token', 'order'])
 
 
+def legible(start=(".",), name='COMMON', num_tokens=75, max_order=5):
+    out = deque()
+    stream = generate_legible(gen_models(order=max_order),
+                              start, name)
+    for _ in range(num_tokens):
+        out.append(next(stream))
+    return out
+
+
 # I'm close.
-def generate_legible(start, models):
+def generate_legible(models, start=(".",), name='COMMON', tag=False):
     # an generator instead? this way we don't have to keep track of state.
     # assume start is a tuple
     order = len(start)
     assert start in models[order]
     max_order = len(models)
-
     curr = deque(start)
     while True:
         staging = curr.copy()
@@ -230,7 +302,6 @@ def generate_legible(start, models):
             tup = tuple(staging)
             model = models[curr_order]
             # fall back to order 1 if nothing else.
-            print("{}, curr_order={}".format(tup, curr_order))
             if tup in model and (not _is_determined(tup, model) or
                                  curr_order == 1):
                 # we've found a valid candidate, or we were forced into it
@@ -240,8 +311,10 @@ def generate_legible(start, models):
                 curr.append(got)
                 while len(curr) >= max_order:
                     curr.popleft()
-                print(curr)
-                yield Colored_Token(got, curr_order)
+                if tag:
+                    yield Colored_Token(got, curr_order)
+                else:
+                    yield got
                 break
             else:
                 staging.popleft()
@@ -253,27 +326,3 @@ def _is_determined(token, model):
     ''' This maximizes the order while introducing an element of chance '''
     return len(model[token].keys()) <= 1
 
-# [', I hope, thou wilt',
-# '; or, if thou wilt',
-# ', and then dreams he of',
-# "plague o' both your houses!",
-# 'at night shall she be fourteen',
-# ", she's dead, she's dead",
-# 'Good night, good night!',
-# 'but, as I said,',
-# 'thumb at us, sir?',
-# 'not so. O, she',
-# 'thumb, sir. Do you',
-# ', thy love, thy wit',
-# '. Here is a friar,',
-# 'Thou wilt fall backward when thou',
-# ', like an honest gentleman,',
-# "; wilt thou not, Jule?'",
-# ', come, go with me',
-# 'thou wilt quarrel with a man',
-# 'day! O day! O',
-# ', be gone, away!',
-# '; there art thou happy:']
-
-  
-  

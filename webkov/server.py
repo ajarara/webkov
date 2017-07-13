@@ -12,15 +12,27 @@ def gen_coroutine(token_generator):
                 # map hyphens to spaces.
                 {45: " "}).upper()
 
-        # if name isn't in characters, aiohttp returns a 404 on our behalf.
         if name in get_characters():
-            print(dir(request))
-            toks = token_generator(
-                name=name,
-                num_tokens=int(request.query.get(
-                    'tokens', 200)),
-                order=int(request.query.get(
-                    'order', '1')))
+            pairargs = [keyvalstring for keyvalstring
+                        in request.query_string.split("&")]
+            args = {}
+            for keyvalstring in pairargs:
+                if len(keyvalstring.split("=")) == 2:
+                    key, value = keyvalstring.split("=")
+                    args[key] = value
+
+            if token_generator == legible:
+                toks = token_generator(
+                    name=name,
+                    num_tokens=int(args.get(
+                        'tokens', 200)))
+            else:
+                toks = token_generator(
+                    name=name,
+                    num_tokens=int(args.get(
+                        'tokens', 200)),
+                    order=int(args.get(
+                        'order', '1')))
             text = pretty(toks) + "\n"
             return web.Response(text=text)
 
@@ -30,7 +42,7 @@ def gen_coroutine(token_generator):
                 "That character either does not exist or does \n"
                 "not have enough lines to build a model from. \n"
                 "\n"
-                "Sorry! Please direct all complaints to /dev/null"))
+                "Sorry! Please direct all complaints to /dev/null\n"))
     return coroutine
 
 

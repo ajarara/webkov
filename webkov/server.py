@@ -14,6 +14,7 @@ def gen_coroutine(token_generator):
 
         # if name isn't in characters, aiohttp returns a 404 on our behalf.
         if name in get_characters():
+            print(dir(request))
             toks = token_generator(
                 name=name,
                 num_tokens=int(request.query.get(

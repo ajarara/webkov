@@ -1,13 +1,13 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import <nixpkgs> {}, local ? true }:
 
-with pkgs.python35Packages;
+with pkgs.python3Packages;
 buildPythonPackage rec {
   pname = "webkov";
-  version = "0.0.1";
+  version = "0.0.4";
   name = "${pname}-${version}";
-  src = ./.;  # this indicates use in develop.
+  src = ./. + (if local then "/dist/${name}.tar.gz" else "/${name}.tar.gz");
   propagatedBuildInputs = [
-    (pkgs.python3.withPackages (ps: [ ps.nltk ps.aiohttp ]))
+    (pkgs.python3.withPackages (ps: [ ps.aiohttp ps.lxml ]))
   ];
 }
   

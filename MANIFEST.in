@@ -1,2 +1,3 @@
 include webkov/full.html
+include full.html
 include README.md

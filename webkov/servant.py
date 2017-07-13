@@ -2,8 +2,8 @@ from collections import deque, defaultdict, Counter, namedtuple
 from random import choice
 # import termcolor
 
-from webkov.parser import name_dialog_deques, TRAILING_PUNCT_SET
-from webkov.parser import SENTENCE_ENDINGS
+from .parser import name_dialog_deques, TRAILING_PUNCT_SET
+from .parser import SENTENCE_ENDINGS
 
 
 # first:
@@ -283,7 +283,7 @@ def gen_models(order=5, name='COMMON', _cache={}):
 Colored_Token = namedtuple("Colored_Token", ['token', 'order'])
 
 
-def legible(start=(".",), name='COMMON', num_tokens=75, max_order=5):
+def legible(start=(".",), name='COMMON', num_tokens=75, max_order=5, tag=False):
     out = deque()
     stream = generate_legible(gen_models(order=max_order),
                               start, name)

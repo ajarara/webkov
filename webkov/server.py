@@ -1,7 +1,9 @@
 from aiohttp import web
 from hashlib import md5
-from webkov.servant import pretty, legible, get_characters
-from webkov.servant import gen_models, generate_tokens
+
+# relative imports again?!
+from .servant import pretty, legible, get_characters
+from .servant import gen_models, generate_tokens
 
 
 def gen_coroutine(token_generator):
@@ -25,7 +27,8 @@ def gen_coroutine(token_generator):
                 toks = token_generator(
                     name=name,
                     num_tokens=int(args.get(
-                        'tokens', 200)))
+                        'tokens', 200))
+                    tag=args.get('tag', False))
             else:
                 toks = token_generator(
                     name=name,

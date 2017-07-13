@@ -10,7 +10,7 @@ def rj_tree():
     rj = HTMLParser()
     # this call can actually be replaced entirely with some
     # call to requests.get, provided it returns html.
-    with open("webkov/full.html", 'r', encoding='utf-8') as f:
+    with open("./full.html", 'r', encoding='utf-8') as f:
         rj.feed(f.read())
     return rj.close()
 

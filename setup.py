@@ -10,7 +10,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
     name='webkov',
 
-    version='0.0.4',
+    version='0.1.2',
     author='Ahmad Jarara',
     author_email='ajarara94@gmail.com',
     url='shakespeare.jarmac.org',
@@ -20,7 +20,7 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Me',
-        'Topic :: Home Automation :: Private Interface',
+        'Topic :: IoT :: Private Interface',
 
         'License :: OSI Approved :: MIT License',
 
@@ -29,6 +29,9 @@ setup(
     ],
 
     packages=find_packages(),
+
+    include_package_data=True,
+    package_data={'webkov': ['full.html', 'webkov/full.html']},
 
     # install_requires=["aiohttp"],
 

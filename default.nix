@@ -3,7 +3,7 @@
 with pkgs.python3Packages;
 buildPythonPackage rec {
   pname = "webkov";
-  version = "0.1.3";
+  version = "0.1.5";
   name = "${pname}-${version}";
   src = ./. + (if local then "/dist/${name}.tar.gz" else "/${name}.tar.gz");
   propagatedBuildInputs = [

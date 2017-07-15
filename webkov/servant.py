@@ -1,6 +1,6 @@
 from collections import deque, defaultdict, Counter, namedtuple
 from random import choice
-# import termcolor
+import termcolor
 
 from .parser import name_dialog_deques, TRAILING_PUNCT_SET
 from .parser import SENTENCE_ENDINGS
@@ -89,16 +89,16 @@ ORDER_COLOR_MAP = {
 
 
 # TODO, splice it into pretty
-# def colored_transform(maybe_token, order_color_map=ORDER_COLOR_MAP):
-#     '''
-#     Take a token, and if it's just a string, return it as is.
-#     If it's tagged, return the colored version of it using termcolor
-#     '''
-#     if isinstance(maybe_token, Colored_Token):
-#         return termcolor.colored(maybe_token.token,
-#                                  order_color_map[maybe_token.order])
-#     else:
-#         return maybe_token
+def colored_transform(maybe_token, order_color_map=ORDER_COLOR_MAP):
+    '''
+    Take a token, and if it's just a string, return it as is.
+    If it's tagged, return the colored version of it using termcolor
+    '''
+    if isinstance(maybe_token, Colored_Token):
+        return termcolor.colored(maybe_token.token,
+                                 order_color_map[maybe_token.order])
+    else:
+        return maybe_token
 
 def pretty(tokens, line_min_chars=35, shakespeare=True,
            min_lines_before_break=(2, 4),
@@ -172,7 +172,9 @@ def padded(tokens):
     out = deque([tokens.popleft()])
     while tokens:
         token = tokens.popleft()
-        if token not in TRAILING_PUNCT_SET:
+        if type(token) == Colored_Token and token.token not in TRAILING_PUNCT_SET:
+            out.append(" ")
+        elif token not in TRAILING_PUNCT_SET:
             out.append(" ")
         out.append(token)
     return out
@@ -283,16 +285,16 @@ def gen_models(order=5, name='COMMON', _cache={}):
 Colored_Token = namedtuple("Colored_Token", ['token', 'order'])
 
 
-def legible(start=(".",), name='COMMON', num_tokens=75, max_order=5, tag=False):
+def legible(start=(".",), name='COMMON', num_tokens=75,
+            max_order=5, tag=False):
     out = deque()
     stream = generate_legible(gen_models(order=max_order),
-                              start, name)
+                              start, name, tag)
     for _ in range(num_tokens):
         out.append(next(stream))
     return out
 
 
-# I'm close.
 def generate_legible(models, start=(".",), name='COMMON', tag=False):
     # an generator instead? this way we don't have to keep track of state.
     # assume start is a tuple
@@ -325,8 +327,7 @@ def generate_legible(models, start=(".",), name='COMMON', tag=False):
                 break
             else:
                 staging.popleft()
-        else:
-            raise ValueError
+
 
 
 def _is_determined(token, model):

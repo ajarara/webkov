@@ -27,8 +27,8 @@ def gen_coroutine(token_generator):
                 toks = token_generator(
                     name=name,
                     num_tokens=int(args.get(
-                        'tokens', 200))
-                    tag=args.get('tag', False))
+                        'tokens', 200)),
+                    tag=bool(args.get('tag', 'False')))
             else:
                 toks = token_generator(
                     name=name,
@@ -50,10 +50,10 @@ def gen_coroutine(token_generator):
 
 
 def main():
-    print("Generating models.. (this will take a while)")
+    print("Generating models..")
     # we don't care about the return value, just that they're cached.
     gen_models()
-    print("Filtering list of eligible characters..")
+    print("Filtering list of eligible characters.. (this will take a while)")
     get_characters()
 
     muse = int(md5("shakespeare".encode("utf-8")).hexdigest(), base=16)

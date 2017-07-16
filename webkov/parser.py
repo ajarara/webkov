@@ -13,7 +13,7 @@ def rj_tree():
     # this call can actually be replaced entirely with some
     # call to requests.get, provided it returns html.
     # this means packaging with requests and depending on
-    # mit hosting shakespeare. Not attractive.
+    # mit hosting shakespeare. That's not ideal.
     # this is awkward:
     rjtext = resource_string(__name__, os.path.join('data', 'full.html'))
     rj.feed(rjtext)

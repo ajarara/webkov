@@ -2,6 +2,7 @@ from collections import deque, defaultdict, Counter, namedtuple
 from random import choice
 import termcolor
 
+from webkov.helper import filtered_model
 
 from webkov.parser import name_dialog_deques, TRAILING_PUNCT_SET
 from webkov.parser import SENTENCE_ENDINGS
@@ -269,7 +270,7 @@ def generate_tokens(start=(".",), order=1, num_tokens=75, name='COMMON'):
 
 # one function > two
 # maybe rewrite this in the context of a generator?
-def chain_from_deq(deq, order=1):
+def chain_from_deq(deq, order=1, strict=True):
     deq = deq.copy()
 
     out = defaultdict(Counter)
@@ -286,6 +287,13 @@ def chain_from_deq(deq, order=1):
         keys = keys[1:]
         # and append what we just got
         keys.append(after)
+    # after the deq has been consumed, if strict
+    # filter out all the keys that aren't in the biggest
+    # scc
+    try:
+        out = filtered_model(out)
+    except ValueError:
+        pass
     return out
 
 
@@ -302,6 +310,8 @@ def gen_models(order=5, name='COMMON', _cache={}):
                 _cache[(i, name)] = chain_from_deq(stream, order=i)
             out[i] = _cache[i, name].copy()
         return out
+
+
 
 
 # can you use namedtuples for lightweight classes?

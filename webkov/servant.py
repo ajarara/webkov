@@ -3,8 +3,8 @@ from random import choice
 import termcolor
 
 
-from .parser import name_dialog_deques, TRAILING_PUNCT_SET
-from .parser import SENTENCE_ENDINGS
+from webkov.parser import name_dialog_deques, TRAILING_PUNCT_SET
+from webkov.parser import SENTENCE_ENDINGS
 
 
 # first:
@@ -81,11 +81,16 @@ def uppercase(line):
 # am I going to even care?
 ORDER_COLOR_MAP = {
     0: 'white',
-    1: 'magenta',
-    2: 'red',
+    1: 'cyan',
+    2: 'green',
     3: 'yellow',
-    4: 'green',
-    5: 'cyan',
+    4: 'red',
+    5: 'magenta',
+    # 1: 'magenta',
+    # 2: 'red',
+    # 3: 'yellow',
+    # 4: 'green',
+    # 5: 'cyan',
 }
 
 
@@ -173,8 +178,11 @@ def padded(tokens):
     out = deque([tokens.popleft()])
     while tokens:
         token = tokens.popleft()
-        if type(token) == Colored_Token and token.token not in TRAILING_PUNCT_SET:
-            out.append(" ")
+        # we break the conditional up here so that we special case colored tokens
+        # alternatively we could pass colored to padded.
+        if type(token) == Colored_Token:
+            if token.token not in TRAILING_PUNCT_SET:
+                out.append(" ")
         elif token not in TRAILING_PUNCT_SET:
             out.append(" ")
         out.append(token)

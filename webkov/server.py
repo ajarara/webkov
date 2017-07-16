@@ -2,8 +2,8 @@ from aiohttp import web
 from hashlib import md5
 
 # relative imports again?!
-from .servant import pretty, legible, get_characters
-from .servant import gen_models, generate_tokens
+from webkov.servant import pretty, legible, get_characters
+from webkov.servant import gen_models, generate_tokens
 
 
 def gen_coroutine(token_generator):

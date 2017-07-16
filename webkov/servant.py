@@ -2,6 +2,7 @@ from collections import deque, defaultdict, Counter, namedtuple
 from random import choice
 import termcolor
 
+
 from .parser import name_dialog_deques, TRAILING_PUNCT_SET
 from .parser import SENTENCE_ENDINGS
 

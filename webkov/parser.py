@@ -1,6 +1,7 @@
 from lxml.html import HTMLParser
 from collections import defaultdict, deque
 import re
+import os
 
 
 def rj_tree():
@@ -10,7 +11,9 @@ def rj_tree():
     rj = HTMLParser()
     # this call can actually be replaced entirely with some
     # call to requests.get, provided it returns html.
-    with open("data/full.html", 'r', encoding='utf-8') as f:
+    # this is awkward:
+    rjpath = os.path.realpath(os.path.join('data', 'full.html'))
+    with open(rjpath, 'r', encoding='utf-8') as f:
         rj.feed(f.read())
     return rj.close()
 

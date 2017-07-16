@@ -71,10 +71,22 @@ def get_characters(required_start=(".",),
     return out
 
 
-def uppercase(line):
-    ''' Takes a line and uppercases the first letter '''
-    return "{}{}".format(line[0].upper(),
-                         line[1:])
+def uppercase_first_tok(tokens):
+    ''' Takes tokens and uppercases the first letter '''
+
+    out = tokens.copy()
+    front = out.popleft()
+    if type(front) == Colored_Token:
+        # initialize a new one. thank lord these are immutable because
+        # right now this codebase is a tire fire, and I wasn't sure
+        # of the effects of copying all these deques.
+        front = Colored_Token(
+            front.token.capitalize(),
+            front.order)
+    else:
+        front = front.capitalize()
+    out.appendleft(front)
+    return out
 
 
 # hmm.. how am I going to map this to html?
@@ -106,8 +118,9 @@ def colored_transform(maybe_token, order_color_map=ORDER_COLOR_MAP):
     else:
         return maybe_token
 
+
 def pretty(tokens, line_min_chars=35, shakespeare=True,
-           min_lines_before_break=(2, 4),
+           min_lines_before_break=(2, 8),
            sentence_endings=SENTENCE_ENDINGS,
            trailing_punct_set=TRAILING_PUNCT_SET):
     '''
@@ -132,28 +145,26 @@ def pretty(tokens, line_min_chars=35, shakespeare=True,
     toks = truncate(tokens.copy())
     while toks:
         # uses peekin!
+        peek = toks[0] if type(toks[0]) == str else toks[0].token
         continue_line_predicate = (charcount < line_min_chars or
-                                   toks[0] in sentence_endings or
-                                   toks[0] in trailing_punct_set)
+                                   peek in sentence_endings or
+                                   peek in trailing_punct_set)
         if continue_line_predicate:
-            # here is a good place to add colored_transform
             tok = toks.popleft()
-            charcount += len(tok)
+            if type(tok) == Colored_Token:
+                charcount += len(tok.token)
+            else:
+                charcount += len(tok)
             words.append(tok)
         else:
-            # how could a function named pretty be so ugly?
-            maybe_break = ((lines_before_break >
-                           choice(range(*min_lines_before_break))) and
-                           (prettified_lines[-1][-1] in sentence_endings or
-                            prettified_lines[-1][-1] in trailing_punct_set))
-            if maybe_break:
+            if lines_before_break > choice(range(*min_lines_before_break)):
                 prettified_lines.append("")
-                lines_before_break = lines_before_break - maybe_break
+                lines_before_break = 0
             # now we add another line
             lines_before_break += 1
-            line = "".join(padded(words))
-            if len(line) > 1 and shakespeare:
-                line = uppercase(line)
+            if words and shakespeare:
+                words = uppercase_first_tok(words)
+            line = "".join(map(colored_transform, padded(words)))
             prettified_lines.append(line)
 
             # reinitialize
@@ -161,11 +172,10 @@ def pretty(tokens, line_min_chars=35, shakespeare=True,
             words = deque()
     if words:
         # don't worry about breaking anymore, this is the last one.
-        line = "".join(padded(words))
-        if len(line) > 1 and shakespeare:
-            line = uppercase(line)
+        if shakespeare:
+            words = uppercase_first_tok(words)
+        line = "".join(map(colored_transform, padded(words)))
         prettified_lines.append(line)
-
     return "\n".join(prettified_lines)
 
 
@@ -195,7 +205,11 @@ def truncate(tokens, sentence_endings=SENTENCE_ENDINGS):
     '''
     # iterate backwards
     while tokens:
-        maybe_punct = tokens.pop()
+        tok = tokens.pop()
+        if type(tok) == Colored_Token:
+            maybe_punct = tok.token
+        else:
+            maybe_punct = tok
         if maybe_punct in sentence_endings:
             tokens.append(maybe_punct)
             break

@@ -10,7 +10,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
     name='webkov',
 
-    version='0.1.5',
+    version='0.1.6',
     author='Ahmad Jarara',
     author_email='ajarara94@gmail.com',
     url='shakespeare.jarmac.org',
@@ -31,7 +31,7 @@ setup(
     packages=find_packages(),
 
     include_package_data=True,
-    package_data={'webkov': ['full.html', 'webkov/full.html']},
+    package_data={'webkov': ['data/*']},
 
     # install_requires=["aiohttp"],
 

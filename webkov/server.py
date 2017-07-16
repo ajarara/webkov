@@ -23,6 +23,13 @@ def gen_coroutine(token_generator):
                     key, value = keyvalstring.split("=")
                     args[key] = value
 
+            if 'tokens' in args and args['tokens'] > 75000:
+                return web.Response(
+                    status=403,
+                    text='''
+                    Don't be greedy, there are enough words to go around!
+                    There is a maximum of 75000 tokens per request.
+                    ''')
             if token_generator == legible:
                 toks = token_generator(
                     name=name,

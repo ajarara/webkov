@@ -12,7 +12,7 @@ let
 in
 buildPythonPackage rec {
   pname = "webkov";
-  version = "0.2.1";
+  version = "0.2.2";
   name = "${pname}-${version}";
   src = ./. + (if local then "/dist/${name}.tar.gz" else "/${name}.tar.gz");
   propagatedBuildInputs = [

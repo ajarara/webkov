@@ -7,8 +7,7 @@ from webkov.servant import gen_models, generate_tokens
 
 async def handler(request):
     name = request.match_info.get(
-        "name", "COMMON".translate(
-            {45: " "}).upper())
+        "name", "COMMON").translate({45: " "}).upper()
 
     pairargs = [keyvalstring for keyvalstring
                 in request.query_string.split("&")]

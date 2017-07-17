@@ -15,17 +15,19 @@ def prose(start=(".",), name='JULIET', num_tokens=75):
         generate_tokens(start=start, name=name, num_tokens=num_tokens)))
 
 
-# don't access this directly. Instead, use get_characters()
+# if any of these characters are commented out, it's because
+# throughout the entire play they do not end a sentence.
+
 CHARACTERS = {
     'MERCUTIO',
-    'SECOND WATCHMAN',
+    # 'SECOND WATCHMAN',
     'NURSE',
     'PARIS',
     'GREGORY',
-    'PETER',
-    'THIRD MUSICIAN',
-    'ABRAHAM',
-    'SECOND MUSICIAN',
+    # 'PETER',
+    # 'THIRD MUSICIAN',          
+    # 'ABRAHAM',
+    # 'SECOND MUSICIAN',
     'SECOND SERVANT',
     'BENVOLIO',
     'SECOND CAPULET',
@@ -33,20 +35,20 @@ CHARACTERS = {
     'SAMPSON',
     'BALTHASAR',
     'SERVANT',
-    'FIRST CITIZEN',
+    # 'FIRST CITIZEN',
     'LADY CAPULET',
     'ROMEO',
-    'FIRST MUSICIAN',
+    # 'FIRST MUSICIAN',
     'MONTAGUE',
     'FIRST WATCHMAN',
     'COMMON',
     'LADY MONTAGUE',
     'PRINCE',
     'CHORUS',
-    'THIRD WATCHMAN',
+    # 'THIRD WATCHMAN',
     'CAPULET',
     'FRIAR JOHN',
-    'MUSICIAN',
+    # 'MUSICIAN',
     'PAGE',
     'FRIAR LAURENCE',
     'TYBALT',
@@ -55,25 +57,6 @@ CHARACTERS = {
     'LADY CAPULET',
     'JULIET'
 }
-
-
-def get_characters(required_start=(".",),
-                   _characters=CHARACTERS,
-                   _cache={}):
-    # ==================== NOTICE ====================
-    # this needs to be removed, it is now superseded by tarjan.py
-    # ==================== NOTICE ====================
-    if required_start in _cache:
-        return _cache[required_start]
-    if type(required_start) == str:
-        required_start = (required_start,)
-    order = len(required_start)
-
-    out = frozenset(name for name in _characters
-                    if required_start in gen_models(name=name)[order])
-    _cache[required_start] = out
-    return out
-
 
 def uppercase_first_tok(tokens):
     ''' Takes tokens and uppercases the first letter '''
@@ -244,7 +227,8 @@ def generate_tokens(start=(".",), order=1, num_tokens=75, name='COMMON'):
 
     if start not in chains:
         # rather than fall apart, just choose something
-        start = choice(chains.keys())
+        print("{} does not have a {} in their model".format(name, start))
+        start = choice(list(chains.keys()))
         # raise KeyError("{} is not in the dialog of {}".format(
         #     repr(start),
         #     name))

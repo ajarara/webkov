@@ -243,9 +243,11 @@ def generate_tokens(start=(".",), order=1, num_tokens=75, name='COMMON'):
         assert order == prefix
 
     if start not in chains:
-        raise KeyError("{} is not in the dialog of {}".format(
-            repr(start),
-            name))
+        # rather than fall apart, just choose something
+        start = choice(chains.keys())
+        # raise KeyError("{} is not in the dialog of {}".format(
+        #     repr(start),
+        #     name))
 
     out = deque()
     # special case the start token if it starts with a "."

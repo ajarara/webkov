@@ -5,7 +5,7 @@ from webkov.servant import pretty, legible
 from webkov.servant import gen_models, generate_tokens
 
 
-async def handler():
+async def handler(request):
     name = request.match_info.get(
         "name", "COMMON".translate(
             {45: " "}).upper())
@@ -27,13 +27,13 @@ There is a maximum of 75000 tokens per request.
             ''')
 
     num_tokens = int(args.get('tokens', '200'))
-    if bool(args.get('legible', 'False')):
+    if bool(args.get('legible', False)):
         toks = legible(
             name=name,
             num_tokens=num_tokens,
-            tag=bool(args.get('tag', 'False')))
+            tag=bool(args.get('tag', False)))
     else:
-        toks = token_generator(
+        toks = generate_tokens(
             name=name,
             num_tokens=num_tokens,
             order=int(args.get(
@@ -50,11 +50,13 @@ def _muse():
 
 def main():
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('port', metavar='18293',
+    argparser.add_argument('--port', metavar='18293',
                            type=int, default=_muse(),
+                           dest='port',
                            help='Port to run shakespeare on')
-    argparser.add_argument('addr', metavar='0.0.0.0'
-                           type=int, default='0.0.0.0',
+    argparser.add_argument('--addr', metavar='0.0.0.0',
+                           default='0.0.0.0',
+                           dest='addr',
                            help='Interface to bind to. Defaults to all.')
 
     args = argparser.parse_args()
@@ -66,4 +68,4 @@ def main():
 
     app.router.add_get('/', handler)
     app.router.add_get('/{name}', handler)
-    web.run_app(app, host=args.host, port=args.port)
+    web.run_app(app, host=args.addr, port=args.port)

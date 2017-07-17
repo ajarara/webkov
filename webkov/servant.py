@@ -34,7 +34,7 @@ CHARACTERS = {
     'BALTHASAR',
     'SERVANT',
     'FIRST CITIZEN',
-    'LADY  CAPULET',
+    'LADY CAPULET',
     'ROMEO',
     'FIRST MUSICIAN',
     'MONTAGUE',
@@ -60,6 +60,9 @@ CHARACTERS = {
 def get_characters(required_start=(".",),
                    _characters=CHARACTERS,
                    _cache={}):
+    # ==================== NOTICE ====================
+    # this needs to be removed, it is now superseded by tarjan.py
+    # ==================== NOTICE ====================
     if required_start in _cache:
         return _cache[required_start]
     if type(required_start) == str:
@@ -289,11 +292,13 @@ def chain_from_deq(deq, order=1, strict=True):
         keys.append(after)
     # after the deq has been consumed, if strict
     # filter out all the keys that aren't in the biggest
-    # scc
-    try:
-        out = filtered_model(out)
-    except ValueError:
-        pass
+    # scc. Only order 1 is implemented so do nothing
+    # if it fails
+    if strict:
+        try:
+            out = filtered_model(out, order)
+        except ValueError:
+            pass
     return out
 
 

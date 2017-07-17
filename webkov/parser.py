@@ -15,7 +15,7 @@ def rj_tree():
     # this means packaging with requests and depending on
     # mit hosting shakespeare. That's not ideal.
     # this is awkward:
-    rjtext = resource_string(__name__, os.path.join('data', 'full.html'))
+    rjtext = resource_string(__name__, 'full.html')
     rj.feed(rjtext)
     return rj.close()
 

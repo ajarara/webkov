@@ -16,4 +16,6 @@ def helper(model, order=1, tarjan=tarjan):
 
 def filtered_model(model, order=1):
     filt = helper(model, order)
-    return {key: value for key, value in model if key in filt}
+    if not order == 1:
+        raise ValueError
+    return {key: value for key, value in model.items() if key[0] in filt}

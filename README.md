@@ -1,5 +1,7 @@
 # Webkov
-> Shakespeare never died
+
+This application is built and deployed with Nix.
+
 
 Once installed:
 ```
@@ -41,7 +43,9 @@ Where the maid; but when presently through
 All for Rosaline?
 ```
 
-This is available for all characters in Romeo and Juliet. The less dialog a character has, the more... predictable they get:
+This is available for almost all characters in Romeo and Juliet. They have to end a sentence at least twice. 9 out of 24 characters do not do this :(
+
+The less dialog a character has, the more... predictable they get:
 
 ``` bash
 $ curl second-musician.jarmac.org
@@ -73,16 +77,14 @@ And put out your wit.
 # Client options:
 
 Options are presented cgi-style:
-$CHAR.jarmac.org?tokens=4000&order=2
+lady-montague.jarmac.org?tokens=4000&order=2
 
 These are case sensitive.
 ## tokens
-The number of tokens generated internally. These are then truncated. You can always be guaranteed that you will recieve less than the amount you requested. 
-
-Sorry, Shakespeare's dead and this is all we've got.
+The number of tokens generated internally. These are then truncated. You can always be guaranteed that you will recieve less than the amount you requested. Don't request more than 75000 tokens, that many are for pro members only.
 
 ## order
-Before listening for requests, the code will pass through romeo and juliet's dialogue stream 5 times, generating order i markov chains. An order N markov chain in this context generates a token by looking at the previous N tokens. The higher the order, the more output looks like genuine Shakespeare, but the less interesting the model becomes.
+Before listening for requests, the code will pass through romeo and juliet's dialogue stream 5 times, generating order n markov chains, for 1 <= n < 5. An order N markov chain in this context generates a token by looking at the previous N tokens. The higher the order, the more output looks like genuine Shakespeare, but the less interesting the model becomes.
 
 ## legible
 Legibility is an experiment I did regarding order. As you increase the order of the markov chain generating the token stream, you get closer and closer to Shakespeare. Increase the order too much, and you are outputting literal Shakespeare. Instead, what if tokens were generated with this policy: use the highest order possible while leaving the possibility of choice (where the last N tokens presented multiple options for a new token), so that all output had a chance of being generated.

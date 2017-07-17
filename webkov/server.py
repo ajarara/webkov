@@ -1,7 +1,7 @@
 from aiohttp import web
 from hashlib import md5
 import argparse
-from webkov.servant import pretty, legible
+from webkov.servant import pretty, legible, CHARACTERS
 from webkov.servant import gen_models, generate_tokens
 
 
@@ -9,6 +9,15 @@ async def handler(request):
     name = request.match_info.get(
         "name", "COMMON").translate({45: " "}).upper()
 
+    if name not in CHARACTERS:
+        return web.Response(
+            status=404,
+            text='''
+Either the character was not found or doesn't have enough dialog to
+build a model from. Sorry!
+
+Please direct all complaints to /dev/null. Thank you!
+''')
     pairargs = [keyvalstring for keyvalstring
                 in request.query_string.split("&")]
     args = {}

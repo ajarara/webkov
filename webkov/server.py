@@ -3,6 +3,7 @@ from hashlib import md5
 import argparse
 from webkov.servant import pretty, legible, CHARACTERS
 from webkov.servant import gen_models, generate_tokens
+import os
 
 
 async def handler(request):

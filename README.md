@@ -81,10 +81,10 @@ lady-montague.jarmac.org?tokens=4000&order=2
 
 These are case sensitive.
 ## tokens
-The number of tokens generated internally. These are then truncated. You can always be guaranteed that you will recieve less than the amount you requested. Don't request more than 75000 tokens, that many are for pro members only.
+The number of tokens generated internally. These are then truncated. You can always be guaranteed that you will recieve less than the amount you requested. Don't request more than 75000 tokens, that many are for enterprise license holders only.
 
 ## order
-Before listening for requests, the code will pass through romeo and juliet's dialogue stream 5 times, generating order n markov chains, for 1 <= n < 5. An order N markov chain in this context generates a token by looking at the previous N tokens. The higher the order, the more output looks like genuine Shakespeare, but the less interesting the model becomes.
+Before listening for requests, the code will pass through romeo and juliet's dialogue stream 5 times, generating order n markov chains, for 1 <= n < 6. An order N markov chain in this context generates a token by looking at the previous N tokens. The higher the order, the more output looks like genuine Shakespeare, but the less interesting the model becomes.
 
 ## legible
 Legibility is an experiment I did regarding order. As you increase the order of the markov chain generating the token stream, you get closer and closer to Shakespeare. Increase the order too much, and you are outputting literal Shakespeare. Instead, what if tokens were generated with this policy: use the highest order possible while leaving the possibility of choice (where the last N tokens presented multiple options for a new token), so that all output had a chance of being generated.
@@ -99,7 +99,6 @@ This will wrap each token in a color corresponding to the order that generated i
 The order-color map is:
 ``` python
 ORDER_COLOR_MAP = {
-    0: 'white',  # used for the very first token.
     1: 'cyan',
     2: 'green',
     3: 'yellow',

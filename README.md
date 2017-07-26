@@ -106,3 +106,5 @@ ORDER_COLOR_MAP = {
     5: 'magenta',
 }
 ```
+
+All other flags sent will be ignored.

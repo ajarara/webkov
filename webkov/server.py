@@ -67,11 +67,25 @@ def main():
                            default='0.0.0.0',
                            dest='addr',
                            help='Interface to bind to. Defaults to all.')
-
+    argparser.add_argument('--uid', metavar='18294',
+                           # probably gonna bite me later for using muse
+                           type=int, default=_muse()+1,
+                           dest='uid',
+                           help='User to drop after initializing')
+    argparser.add_argument('--gid', metavar='18294',
+                           # ah screw it let's double down on bad decisions
+                           type=int, default=_muse()+1,
+                           dest='gid',
+                           help='User to drop after initializing')
+    
     args = argparser.parse_args()
     print("Generating models..")
     # we don't care about the return value, just that they're cached.
     gen_models()
+
+    # drop privileges to our own dedicated user
+    os.setuid(args.uid)
+    os.setgid(args.gid)
 
     app = web.Application()
 

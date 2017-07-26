@@ -5,14 +5,25 @@ let
     inherit pkgs;
     local = false;
   };
+  webkovusr = {
+    uid = 18294;
+    extraGroups = [ "webkov" ];
+  };
+  webkovgid = 18294;
+  port = 18293;
 in
 {
   environment.systemPackages = [ webkov ];
+  
+  users.groups = {
+    webkov = { name = "webkov"; gid = webkovgid; };
+  };
+  
   systemd.services.webkov = {
-    description = "Shakespeare on port 18293";
+    description = "Shakespeare on port ${port}";
     wantedBy = [ "multi-user.target" ];
     script = ''
-      ${webkov}/bin/shakespeare
+      ${webkov}/bin/shakespeare --port ${port} --uid ${webkovusr.uid} --gid ${webkovgid}
     '';
   };
 
@@ -23,7 +34,7 @@ in
       name = "${char}.jarmac.org";
       value = {
         locations."/" = {
-          proxyPass = "http://jarmac.org:18293/${char}";
+          proxyPass = "http://jarmac.org:${port}/${char}";
         };
       };
     };
@@ -71,12 +82,12 @@ in
   {
     "shakespeare.jarmac.org" = {
       locations."/" = {
-        proxyPass = "http://jarmac.org:18293";
+        proxyPass = "http://jarmac.org:${port}";
       };
     };
   } // (builtins.listToAttrs (map helperfn chars));
   
   # see note in virtual host config
-  networking.firewall.allowedTCPPorts = [ 18293 ];
+  networking.firewall.allowedTCPPorts = [ port ];
 }
   

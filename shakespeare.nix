@@ -5,25 +5,30 @@ let
     inherit pkgs;
     local = false;
   };
-  webkovusr = {
-    uid = 18294;
+  webkovuser = {
+    uid = 18293;
     extraGroups = [ "webkov" ];
+    };
+  webkovgroup = {
+    name = "webkov";
+    gid = 18294;
   };
-  webkovgid = 18294;
-  port = 18293;
 in
 {
   environment.systemPackages = [ webkov ];
   
-  users.groups = {
-    webkov = { name = "webkov"; gid = webkovgid; };
-  };
+  users.extraUsers.webkov = webkovuser;
+  users.extraGroups.webkov = webkovgroup;
   
   systemd.services.webkov = {
-    description = "Shakespeare on port ${port}";
+    description = "Shakespeare on port 18293";
     wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      User = "webkov";
+      Group = "webkov";
+    };
     script = ''
-      ${webkov}/bin/shakespeare --port ${port} --uid ${webkovusr.uid} --gid ${webkovgid}
+      ${webkov}/bin/shakespeare
     '';
   };
 
@@ -34,21 +39,21 @@ in
       name = "${char}.jarmac.org";
       value = {
         locations."/" = {
-          proxyPass = "http://jarmac.org:${port}/${char}";
+          proxyPass = "http://jarmac.org:18293/${char}";
         };
       };
     };
     
     chars = [
         "mercutio"
-        # "second-watchman"
+        "second-watchman"
         "nurse"
         "paris"
         "gregory"
-        # "peter"
-        # "third-musician"
-        # "abraham"
-        # "second-musician"
+        "peter"
+        "third-musician"
+        "abraham"
+        "second-musician"
         "second-servant"
         "benvolio"
         "second-capulet"
@@ -56,20 +61,20 @@ in
         "sampson"
         "balthasar"
         "servant"
-        # "first-citizen"
+        "first-citizen"
         "lady-capulet"
         "romeo"
-        # "first-musician"
+        "first-musician"
         "montague"
         "first-watchman"
         "common"
         "lady-montague"
         "prince"
         "chorus"
-        # "third-watchman"
+        "third-watchman"
         "capulet"
         "friar-john"
-        # "musician"
+        "musician"
         "page"
         "friar-laurence"
         "tybalt"
@@ -82,12 +87,12 @@ in
   {
     "shakespeare.jarmac.org" = {
       locations."/" = {
-        proxyPass = "http://jarmac.org:${port}";
+        proxyPass = "http://jarmac.org:18293";
       };
     };
   } // (builtins.listToAttrs (map helperfn chars));
   
   # see note in virtual host config
-  networking.firewall.allowedTCPPorts = [ port ];
+  networking.firewall.allowedTCPPorts = [ 18293 ];
 }
   

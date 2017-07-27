@@ -83,10 +83,6 @@ def main():
     # we don't care about the return value, just that they're cached.
     gen_models()
 
-    # drop privileges to our own dedicated user
-    os.setuid(args.uid)
-    os.setgid(args.gid)
-
     app = web.Application()
 
     app.router.add_get('/', handler)

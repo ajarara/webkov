@@ -10,7 +10,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
     name='webkov',
 
-    version='0.2.7',
+    version='0.2.8',
     author='Ahmad Jarara',
     author_email='ajarara94@gmail.com',
     url='shakespeare.jarmac.org',

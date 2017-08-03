@@ -13,6 +13,9 @@ let
     name = "webkov";
     gid = 18294;
   };
+  proto = "http://";
+  domain = "jarmac.org";
+  port = 18293;
 in
 {
   environment.systemPackages = [ webkov ];
@@ -21,14 +24,14 @@ in
   users.extraGroups.webkov = webkovgroup;
   
   systemd.services.webkov = {
-    description = "Shakespeare on port 18293";
+    description = "Shakespeare on port ${port}";
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       User = "webkov";
       Group = "webkov";
     };
     script = ''
-      ${webkov}/bin/shakespeare
+      ${webkov}/bin/shakespeare --port ${port}
     '';
   };
 
@@ -36,10 +39,10 @@ in
   services.nginx.virtualHosts =
   let
     helperfn = char: {
-      name = "${char}.jarmac.org";
+      name = "${char}.${domain}";
       value = {
         locations."/" = {
-          proxyPass = "http://jarmac.org:18293/${char}";
+          proxyPass = "${proto}${domain}:${port}/${char}";
         };
       };
     };
@@ -87,12 +90,15 @@ in
   {
     "shakespeare.jarmac.org" = {
       locations."/" = {
-        proxyPass = "http://jarmac.org:18293";
+        proxyPass = "${proto}${domain}:${port}";
       };
     };
+    # the next line says: map the function defined above on the
+    # character set (also defined above, after the 'in' line) and
+    # merge the configuration with the base shakespeare one.
   } // (builtins.listToAttrs (map helperfn chars));
   
   # see note in virtual host config
-  networking.firewall.allowedTCPPorts = [ 18293 ];
+  networking.firewall.allowedTCPPorts = [ port ];
 }
   

@@ -93,12 +93,11 @@ in
         proxyPass = "${proto}${domain}:${port}";
       };
     };
-    # the next line says: map the function defined above on the
-    # character set (also defined above, after the 'in' line) and
-    # merge the configuration with the base shakespeare one.
+    # the next line says: map helperfn (defined in the let expr) on
+    # the chars list. Merge the configuration with the base
+    # shakespeare one defined immediately above.
   } // (builtins.listToAttrs (map helperfn chars));
   
-  # see note in virtual host config
   networking.firewall.allowedTCPPorts = [ port ];
 }
   

@@ -110,12 +110,10 @@ ORDER_COLOR_MAP = {
 All other flags sent will be ignored.
 
 # Installation instructions
-For those running NixOS, generate a tarball by running `python3 setup.py sdist` in the root of the repo, making sure the version of the tarball is the same as the version in the default.nix file. Then send shakespeare.nix, default.nix, and the tarball to some directory on the host, and include it from your system configuration file. Nix will do the rest.
+For those running NixOS, run `make package`, rsync ./dist over to your NixOS machine, include shakespeare.nix from your system's configuration.nix file, and rebuild. Nix will do the rest.
 
 Otherwise, install Nix on the host, build the binary either locally or remotely, and send it off, making sure to configure it as needed. The shakespeare.nix file should be enough to tell you what you need, but see below if you need a relatively thorough explanation.
 
-Otherwise, clone the repo (this package is not on Pypi), `python3 setup.py install`. To run, `shakespeare` should now be available in your path: call it with optional arguments port and bind-address. It will build the model, and then bind to the ports given.
+Otherwise, clone the repo (this package is not on Pypi), `python3 setup.py install`. To run, `shakespeare` should now be available in your path: call it with optional arguments port and bind-address. It will build the model, and then bind to the ports given. You will need termcolor, but this should be pulled in from the install step. 
 
 It's possible to map characters as subdomains using something like nginx' reverse proxy functionality, it's just there's quite a lot of characters. See the shakespeare.nix file for a quick demonstration of what's necessary.
-
-
